@@ -1,6 +1,5 @@
 package Activities;
 
-import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
@@ -11,30 +10,17 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.onmyway.R;
 
-public class MainActivity extends AppCompatActivity {
+public class IndexActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_index);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-
-        //入口
-        Intent LoginIntent = new Intent(this, LoginActivity.class);
-        startActivity(LoginIntent);
-
-
-        /*
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        HomeFragment homeFragment = new HomeFragment();
-        fragmentTransaction.add(R.id.MainActivity_FrameLayout_MainZone, homeFragment);
-        fragmentTransaction.commit();
-        */
     }
 }

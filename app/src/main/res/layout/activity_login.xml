@@ -5,26 +5,16 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="Activities.MainActivity">
+    tools:context="Activities.LoginActivity">
 
     <FrameLayout
-        android:id="@+id/MainActivity_FrameLayout_MainZone"
+        android:id="@+id/login_fl_fragment_main_zone"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="32dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginBottom="32dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:id="@+id/textView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="TextView"
-            tools:text="11111111111111111111111111111" />
     </FrameLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
