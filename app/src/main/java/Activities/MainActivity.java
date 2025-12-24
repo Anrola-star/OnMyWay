@@ -107,6 +107,34 @@ public class MainActivity extends AppCompatActivity {
             transaction.hide(currentFragment);
         }*/
 
+        //  设置切换动画
+        if (currentFragment == orderFragment ){
+            transaction.setCustomAnimations(
+                    R.anim.slide_in_right,  // 新Fragment进入动画
+                    R.anim.slide_out_left  // 旧Fragment退出动画
+            );
+        }else if (currentFragment == navFragment ){
+            if (targetFragment == orderFragment){
+                transaction.setCustomAnimations(
+                        R.anim.slide_in_left,
+                        R.anim.slide_out_right
+                );
+            }else if (targetFragment == mineFragment){
+                transaction.setCustomAnimations(
+                        R.anim.slide_in_right,
+                        R.anim.slide_out_left
+                );
+            }
+        }else if (currentFragment == mineFragment ){
+            transaction.setCustomAnimations(
+                    R.anim.slide_in_left,
+                    R.anim.slide_out_right
+            );
+        }
+
+
+
+
         // 如果目标Fragment未添加过，先添加，否则直接显示
         if (!targetFragment.isAdded()) {
             transaction.replace(R.id.fragment_container, targetFragment);
@@ -117,7 +145,6 @@ public class MainActivity extends AppCompatActivity {
         } else {
             transaction.show(targetFragment);
         }
-
         // 提交事务
         transaction.commit();
     }
