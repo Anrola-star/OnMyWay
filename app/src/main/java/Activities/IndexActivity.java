@@ -1,5 +1,6 @@
 package Activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
@@ -22,5 +23,13 @@ public class IndexActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        //入口
+        //Intent LoginIntent = new Intent(this, LoginActivity.class);
+        //startActivity(LoginIntent);
+
+        //测试入口
+        Intent MainIntent = new Intent(this, MainActivity.class);
+        startActivity(MainIntent);
     }
 }

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#FFFFFF"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_marginHorizontal="24dp">
+
+    <!-- 弹窗标题 -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="接单设置"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#333333"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- 接单距离限制 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="接单最大距离"
+            android:textColor="#333333"
+            android:textSize="14sp"/>
+
+        <Spinner
+            android:id="@+id/spinner_distance"
+            android:layout_width="120dp"
+            android:layout_height="32dp"
+            android:entries="@array/fo_order_distance"
+            android:background="@drawable/fo_selector_spinner_bg"/>
+    </LinearLayout>
+
+    <!-- 接单金额限制 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="最低接单金额"
+            android:textColor="#333333"
+            android:textSize="14sp"/>
+
+        <Spinner
+            android:id="@+id/fo_spinner_amount"
+            android:layout_width="120dp"
+            android:layout_height="32dp"
+            android:entries="@array/fo_order_amount"
+            android:background="@drawable/fo_selector_spinner_bg"/>
+    </LinearLayout>
+
+    <!-- 接单类型选择 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="接单类型"
+            android:textColor="#333333"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <CheckBox
+                android:id="@+id/cb_food"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="美食外卖"
+                android:checked="true"
+                android:buttonTint="#2196F3"/>
+
+            <CheckBox
+                android:id="@+id/cb_express"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="快递跑腿"
+                android:checked="true"
+                android:buttonTint="#2196F3"/>
+
+            <CheckBox
+                android:id="@+id/cb_grocery"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="超市便利"
+                android:buttonTint="#2196F3"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 保存按钮 -->
+    <Button
+        android:id="@+id/btn_save_setting"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:backgroundTint="#2196F3"
+        android:text="保存设置"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:layout_marginTop="16dp"/>
+
+</LinearLayout>
+

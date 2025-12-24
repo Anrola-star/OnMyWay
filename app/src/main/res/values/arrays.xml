@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="fo_order_sort_type">
+        <item>按距离排序</item>
+        <item>按时间排序</item>
+        <item>按金额排序</item>
+    </string-array>
+
+    <!-- 距离/金额数组-->
+    <string-array name="fo_order_distance">
+        <item>1公里内</item>
+        <item>3公里内</item>
+        <item>5公里内</item>
+        <item>不限距离</item>
+    </string-array>
+
+    <string-array name="fo_order_amount">
+        <item>5元以上</item>
+        <item>10元以上</item>
+        <item>20元以上</item>
+        <item>不限金额</item>
+    </string-array>
+
+
+</resources>

@@ -39,7 +39,7 @@ public class RegisterFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_register, container, false);
 
         // 注册按钮
-        TextView tvGoRegister = view.findViewById(R.id.tv_go_login);
+        TextView tvGoRegister = view.findViewById(R.id.fr_tv_go_login);
 
         // 点击注册，切换到注册 Fragment
         tvGoRegister.setOnClickListener(v -> {
