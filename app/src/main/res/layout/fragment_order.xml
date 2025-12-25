@@ -17,7 +17,7 @@
 
         <!-- 接单设置按钮 -->
         <Button
-            android:id="@+id/fo_btn_order_setting"
+            android:id="@+id/of_btn_order_setting"
             android:layout_width="wrap_content"
             android:layout_height="36dp"
             android:backgroundTint="#2196F3"
@@ -46,7 +46,7 @@
                 android:textSize="14sp"/>
 
             <androidx.appcompat.widget.SwitchCompat
-                android:id="@+id/fo_switch_online"
+                android:id="@+id/of_switch_online"
                 android:layout_width="40dp"
                 android:layout_height="24dp"
                 android:checked="true"
@@ -57,7 +57,7 @@
 
     <!-- 分类标签：待接单/已接单 -->
     <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tab_order_type"
+        android:id="@+id/of_tab_order_type"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:background="#FFFFFF"
@@ -98,7 +98,7 @@
 
         <!-- 排序下拉选择器 -->
         <Spinner
-            android:id="@+id/spinner_sort"
+            android:id="@+id/of_spinner_sort"
             android:layout_width="wrap_content"
             android:layout_height="32dp"
             android:layout_marginLeft="8dp"
@@ -115,7 +115,7 @@
 
         <!-- 更多筛选按钮 -->
         <TextView
-            android:id="@+id/fo_tv_more_filter"
+            android:id="@+id/of_tv_more_filter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="更多筛选 ▼"
@@ -125,7 +125,7 @@
 
     <!-- 订单列表容器（ViewPager2 承载待接单/已接单列表） -->
     <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/vp_order_list"
+        android:id="@+id/of_vp_order_list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"

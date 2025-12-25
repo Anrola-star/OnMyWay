@@ -8,7 +8,7 @@
     tools:context="Activities.LoginActivity">
 
     <FrameLayout
-        android:id="@+id/login_fl_fragment_main_zone"
+        android:id="@+id/la_fl_fragment_main_zone"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"

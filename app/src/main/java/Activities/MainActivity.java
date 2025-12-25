@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        bottomNav = findViewById(R.id.bottom_nav);
+        bottomNav = findViewById(R.id.ma_bottom_nav);
 
         initFragments();    // 初始化Fragment
         setBottomNavClickListener();    // 设置底部导航栏点击事件
@@ -137,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
 
         // 如果目标Fragment未添加过，先添加，否则直接显示
         if (!targetFragment.isAdded()) {
-            transaction.replace(R.id.fragment_container, targetFragment);
+            transaction.replace(R.id.ma_fragment_container, targetFragment);
             // 是否加入回退栈
             if (addToBackStack) {
                 transaction.addToBackStack(null);

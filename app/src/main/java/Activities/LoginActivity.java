@@ -34,7 +34,7 @@ public class LoginActivity extends AppCompatActivity implements OnLoginFragmentS
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         LoginFragment loginFragment = new LoginFragment();
-        fragmentTransaction.add(R.id.login_fl_fragment_main_zone, loginFragment);
+        fragmentTransaction.add(R.id.la_fl_fragment_main_zone, loginFragment);
         fragmentTransaction.commit();
 
 
@@ -65,7 +65,7 @@ public class LoginActivity extends AppCompatActivity implements OnLoginFragmentS
                 R.anim.slide_out_right  // 返回时退出动画
         );
         // 替换容器中的 Fragment , 销毁旧 Fragment 避免叠加
-        transaction.replace(R.id.login_fl_fragment_main_zone, targetFragment);
+        transaction.replace(R.id.la_fl_fragment_main_zone, targetFragment);
         // 加入回退栈, 按返回键切回上一个 Fragment
         transaction.addToBackStack(null);
 
