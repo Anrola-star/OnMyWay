@@ -1,11 +1,15 @@
-package Fragments;
+package com.example.onmyway.Fragments;
 
 import android.app.AlertDialog;
+import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.GridView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -13,6 +17,9 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import de.hdodenhof.circleimageview.CircleImageView;
 
+import com.example.onmyway.Activities.MainActivity;
+import com.example.onmyway.Adapter.AvatarSelectAdapter;
+import com.example.onmyway.Entity.Avatar;
 import com.example.onmyway.R;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Description;
@@ -27,6 +34,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MineFragment extends Fragment {
+
+    private Context context;
 
     // 控件
     private CircleImageView ivAvatar;
@@ -68,11 +77,19 @@ public class MineFragment extends Fragment {
         return view;
     }
 
-    // 初始化图表控件
-    private void initChartView(View view) {
-        incomeChart = view.findViewById(R.id.mf_income_chart);
-        tvWeek = view.findViewById(R.id.mf_tv_week);
-        tvMonth = view.findViewById(R.id.mf_tv_month);
+    // 初始化控件
+    private void initView(View view) {
+        context = view.getContext();
+        ivAvatar = view.findViewById(R.id.mf_iv_avatar);
+        tvNickname = view.findViewById(R.id.mf_tv_nickname);
+        tvRiderId = view.findViewById(R.id.mf_tv_rider_id);
+        tvEditInfo = view.findViewById(R.id.mf_tv_edit_info);
+        tvTodayIncome = view.findViewById(R.id.mf_tv_today_income);
+        tvMonthIncome = view.findViewById(R.id.mf_tv_month_income);
+        tvTotalIncome = view.findViewById(R.id.mf_tv_total_income);
+        btnLogout = view.findViewById(R.id.mf_btn_logout);
+        tvMyIncomeDetail = view.findViewById(R.id.mf_tv_my_income_detail);
+        tvMySetting = view.findViewById(R.id.mf_tv_my_setting);
     }
 
     // 设置点击事件
@@ -80,7 +97,9 @@ public class MineFragment extends Fragment {
 
         // 头像点击
         // TODO: 跳转到修改头像页面
-        ivAvatar.setOnClickListener(v -> Toast.makeText(getActivity(), "更换头像", Toast.LENGTH_SHORT).show());
+        ivAvatar.setOnClickListener(v -> {
+            showAvatarSelectDialog();
+        });
         // 修改信息点击
         // TODO: 跳转到修改信息页面
         tvEditInfo.setOnClickListener(v -> Toast.makeText(getActivity(), "进入修改信息页面", Toast.LENGTH_SHORT).show());
@@ -124,6 +143,13 @@ public class MineFragment extends Fragment {
             tvWeek.setBackgroundColor(getResources().getColor(android.R.color.white));
             tvWeek.setTextColor(getResources().getColor(android.R.color.darker_gray));
         }
+    }
+
+    // 初始化图表控件
+    private void initChartView(View view) {
+        incomeChart = view.findViewById(R.id.mf_income_chart);
+        tvWeek = view.findViewById(R.id.mf_tv_week);
+        tvMonth = view.findViewById(R.id.mf_tv_month);
     }
 
     // 初始化图表样式
@@ -209,20 +235,6 @@ public class MineFragment extends Fragment {
         incomeChart.invalidate(); // 刷新
     }
 
-    // 初始化控件
-    private void initView(View view) {
-        ivAvatar = view.findViewById(R.id.mf_iv_avatar);
-        tvNickname = view.findViewById(R.id.mf_tv_nickname);
-        tvRiderId = view.findViewById(R.id.mf_tv_rider_id);
-        tvEditInfo = view.findViewById(R.id.mf_tv_edit_info);
-        tvTodayIncome = view.findViewById(R.id.mf_tv_today_income);
-        tvMonthIncome = view.findViewById(R.id.mf_tv_month_income);
-        tvTotalIncome = view.findViewById(R.id.mf_tv_total_income);
-        btnLogout = view.findViewById(R.id.mf_btn_logout);
-        tvMyIncomeDetail = view.findViewById(R.id.mf_tv_my_income_detail);
-        tvMySetting = view.findViewById(R.id.mf_tv_my_setting);
-    }
-
     // 加载用户数据
     private void loadUserData() {
         tvNickname.setText("贤");
@@ -243,5 +255,58 @@ public class MineFragment extends Fragment {
                 })
                 .setNegativeButton("取消", null)
                 .show();
+    }
+
+    private void showAvatarSelectDialog() {
+        // 构建弹窗
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_avatar_select, null);
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // 设置背景透明
+
+        //TODO 优化头像读取
+        // 获取头像资源ID
+        int[] AVATAR_RES_IDS = {
+                R.drawable.avatar_0,
+                R.drawable.avatar_1,
+                R.drawable.avatar_2,
+                R.drawable.avatar_3,
+                R.drawable.avatar_4
+        };
+
+        // 初始化头像列表数据
+        List<Avatar> avatarList = new ArrayList<>();
+        for (int resId : AVATAR_RES_IDS) {
+            avatarList.add(new Avatar(resId, false));
+        }
+
+        // 初始化GridView和适配器
+        GridView gvAvatar = dialogView.findViewById(R.id.gv_avatar_list);
+        AvatarSelectAdapter adapter = new AvatarSelectAdapter(context, avatarList);
+        gvAvatar.setAdapter(adapter);
+
+        // 头像列表点击事件
+        gvAvatar.setOnItemClickListener((parent, view, position, id) -> {
+            // 更新选中状态
+            adapter.setSelectedPosition(position);
+        });
+
+        // 确认更换按钮点击事件
+        dialogView.findViewById(R.id.btn_confirm_change).setOnClickListener(v -> {
+            // 获取选中的头像位置
+            int selectedPos = adapter.getSelectedPosition();
+            // TODO 更新头像数据库
+            // 更新主界面头像
+            ivAvatar.setImageResource(AVATAR_RES_IDS[selectedPos]);
+            // 提示更换成功
+            Toast.makeText(context, "头像更换成功", Toast.LENGTH_SHORT).show();
+            // 关闭弹窗
+            dialog.dismiss();
+        });
+
+        // 显示弹窗
+        dialog.show();
     }
 }

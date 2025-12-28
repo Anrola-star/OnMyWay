@@ -1,4 +1,4 @@
-package Fragments;
+package com.example.onmyway.Fragments;
 
 import android.os.Bundle;
 

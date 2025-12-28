@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:drawable/dialog_holo_light_frame"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- 标题 -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="选择头像"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <!-- 头像列表网格 -->
+    <GridView
+        android:id="@+id/gv_avatar_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:horizontalSpacing="10dp"
+        android:numColumns="4"
+        android:verticalSpacing="10dp" />
+
+    <!-- 确认按钮 -->
+    <Button
+        android:id="@+id/btn_confirm_change"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="20dp"
+        android:backgroundTint="#0088ff"
+        android:text="确认更换"
+        android:textColor="@android:color/white" />
+
+</LinearLayout>

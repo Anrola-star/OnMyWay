@@ -1,4 +1,4 @@
-package Interface;
+package com.example.onmyway.Interface;
 
 public interface OnLoginFragmentSwitchListener {
 

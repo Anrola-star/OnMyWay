@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F5F7FA"
-    tools:context="Fragments.LoginFragment">
+    tools:context=".Fragments.LoginFragment">
 
     <!-- 主内容容器 -->
     <ScrollView
@@ -65,7 +65,7 @@
                 app:hintAnimationEnabled="true">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/lf_et_username"
+                    android:id="@+id/lf_et_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textEmailAddress|textPersonName"

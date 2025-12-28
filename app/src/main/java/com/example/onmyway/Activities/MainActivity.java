@@ -1,4 +1,4 @@
-package Activities;
+package com.example.onmyway.Activities;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -21,9 +21,9 @@ import androidx.fragment.app.FragmentTransaction;
 import com.example.onmyway.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-import Fragments.MineFragment;
-import Fragments.NavFragment;
-import Fragments.OrderFragment;
+import com.example.onmyway.Fragments.MineFragment;
+import com.example.onmyway.Fragments.NavFragment;
+import com.example.onmyway.Fragments.OrderFragment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -101,12 +101,6 @@ public class MainActivity extends AppCompatActivity {
         FragmentManager fm = getSupportFragmentManager();
         FragmentTransaction transaction = fm.beginTransaction();
 
-        /*
-        // 隐藏当前显示的Fragment
-        if (currentFragment != null) {
-            transaction.hide(currentFragment);
-        }*/
-
         //  设置切换动画
         if (currentFragment == orderFragment ){
             transaction.setCustomAnimations(
@@ -132,12 +126,14 @@ public class MainActivity extends AppCompatActivity {
             );
         }
 
-
-
+        // 如果当前Fragment不是目标Fragment，则隐藏
+        if (currentFragment != null && currentFragment != targetFragment) {
+            transaction.hide(currentFragment);
+        }
 
         // 如果目标Fragment未添加过，先添加，否则直接显示
         if (!targetFragment.isAdded()) {
-            transaction.replace(R.id.ma_fragment_container, targetFragment);
+            transaction.add(R.id.ma_fragment_container, targetFragment);
             // 是否加入回退栈
             if (addToBackStack) {
                 transaction.addToBackStack(null);

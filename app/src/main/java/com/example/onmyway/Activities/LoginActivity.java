@@ -1,4 +1,4 @@
-package Activities;
+package com.example.onmyway.Activities;
 
 import android.os.Bundle;
 
@@ -13,9 +13,9 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.example.onmyway.R;
 
-import Fragments.LoginFragment;
-import Fragments.RegisterFragment;
-import Interface.OnLoginFragmentSwitchListener;
+import com.example.onmyway.Fragments.LoginFragment;
+import com.example.onmyway.Fragments.RegisterFragment;
+import com.example.onmyway.Interface.OnLoginFragmentSwitchListener;
 
 public class LoginActivity extends AppCompatActivity implements OnLoginFragmentSwitchListener {
 

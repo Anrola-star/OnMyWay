@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="70dp"
+    android:layout_height="70dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- 头像图片 -->
+    <ImageView
+        android:id="@+id/iv_avatar"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_centerInParent="true"
+        android:scaleType="centerCrop"
+        android:background="@drawable/background_oval_stroke"/>
+
+    <!-- 选中标记（默认隐藏） -->
+    <ImageView
+        android:id="@+id/iv_selected"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:background="@drawable/background_oval_stroke"
+        android:backgroundTint="@color/teal_200"
+        android:visibility="gone"
+        app:tint="#0088ff" />
+
+</RelativeLayout>

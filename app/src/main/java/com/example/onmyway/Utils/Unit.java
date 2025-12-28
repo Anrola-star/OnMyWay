@@ -1,4 +1,4 @@
-package Utils;
+package com.example.onmyway.Utils;
 
 import android.content.Context;
 
