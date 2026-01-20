@@ -67,7 +67,7 @@ public class AvatarSelectAdapter extends BaseAdapter {
 
         // 设置头像
         Avatar avatar = avatarList.get(position);
-        holder.ivAvatar.setImageResource(avatar.getAvatarResId());
+        holder.ivAvatar.setImageBitmap(avatar.getAvatarBitmap());
 
         // 设置选中状态
         if (position == selectedPosition) {

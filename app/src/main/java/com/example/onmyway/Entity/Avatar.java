@@ -1,20 +1,22 @@
 package com.example.onmyway.Entity;
 
+import android.graphics.Bitmap;
+
 public class Avatar {
-    private int avatarResId;
+    private Bitmap avatarBitmap;
     private boolean isSelected;
 
-    public Avatar(int avatarResId, boolean isSelected) {
-        this.avatarResId = avatarResId;
+    public Avatar(Bitmap avatarBitmap, boolean isSelected) {
+        this.avatarBitmap = avatarBitmap;
         this.isSelected = isSelected;
     }
 
-    public int getAvatarResId() {
-        return avatarResId;
+    public Bitmap getAvatarBitmap() {
+        return avatarBitmap;
     }
 
-    public void setAvatarResId(int avatarResId) {
-        this.avatarResId = avatarResId;
+    public void setAvatarBitmap(Bitmap avatarBitmap) {
+        this.avatarBitmap = avatarBitmap;
     }
 
     public boolean isSelected() {

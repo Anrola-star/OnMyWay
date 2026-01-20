@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 移除不兼容的state_error，只保留标准状态 -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 获取焦点时的样式 -->
+    <item android:state_focused="true">
+        <layer-list>
+            <item
+                android:bottom="0dp"
+                android:left="-2dp"
+                android:right="-2dp"
+                android:top="-2dp">
+                <shape android:shape="rectangle">
+                    <stroke
+                        android:width="0dp"
+                        android:color="@android:color/transparent" />
+                    <solid android:color="@android:color/transparent" />
+                </shape>
+            </item>
+            <item android:gravity="bottom">
+                <shape android:shape="rectangle">
+                    <size android:height="2dp" />
+                    <solid android:color="#2196F3" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+
+    <!-- 常态（未获取焦点，灰色细下划线） -->
+    <item>
+        <layer-list>
+            <item
+                android:bottom="0dp"
+                android:left="-2dp"
+                android:right="-2dp"
+                android:top="-2dp">
+                <shape android:shape="rectangle">
+                    <stroke
+                        android:width="0dp"
+                        android:color="@android:color/transparent" />
+                    <solid android:color="@android:color/transparent" />
+                </shape>
+            </item>
+            <item android:gravity="bottom">
+                <shape android:shape="rectangle">
+                    <size android:height="1dp" />
+                    <solid android:color="#CCCCCC" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</selector>

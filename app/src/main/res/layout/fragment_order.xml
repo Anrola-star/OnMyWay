@@ -71,12 +71,12 @@
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="待接单"/>
+            android:text="待接单" />
 
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="已接单"/>
+            android:text="已接单" />
     </com.google.android.material.tabs.TabLayout>
 
     <!-- 筛选栏：排序方式 + 筛选按钮 -->
@@ -123,12 +123,11 @@
             android:textSize="14sp"/>
     </LinearLayout>
 
-    <!-- 订单列表容器（ViewPager2 承载待接单/已接单列表） -->
-    <androidx.viewpager2.widget.ViewPager2
+    <!-- 此处是 RecyclerView，用于绑定 OrderListAdapter -->
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/of_vp_order_list"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="8dp"/>
+        android:layout_height="match_parent"
+        android:paddingHorizontal="8dp"/>
 
 </LinearLayout>

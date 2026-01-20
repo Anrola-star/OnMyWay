@@ -2,6 +2,8 @@ package com.example.onmyway.Fragments;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -20,6 +22,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.onmyway.Activities.MainActivity;
 import com.example.onmyway.R;
 
 import org.json.JSONException;
@@ -31,17 +34,18 @@ import com.example.onmyway.Utils.MyRequest;
 
 public class LoginFragment extends Fragment {
 
+    private static class ViewHolder {
+        private static Button btnLogin;
+        private static EditText etName;
+        private static EditText etPassword;
+        private static TextView tvGoRegister;  // 注册按钮
+    }
     private Context context;
     private Handler handler;
     private OnLoginFragmentSwitchListener switchListener;   // 切换登录注册界面监听器
     private final EditTextController editTextController = new EditTextController();  // 输入框控制器
     private final MyRequest myRequest = new MyRequest();  // 请求类
-    private Button btnLogin;
-    private EditText etName;
-    private EditText etPassword;
-    private TextView tvGoRegister;  // 注册按钮
-
-
+    private SharedPreferences sharedPreferences;
     private final int LoginHandlerWhat = 1;
 
     @Override
@@ -64,10 +68,10 @@ public class LoginFragment extends Fragment {
 
 
         initView(view);
-        //initHandler();
-        //setClickEvents();
-        //editTextController.setTextListener(context, etName);
-        //editTextController.setTextListener(context, etPassword);
+        initHandler();
+        setClickEvents();
+        editTextController.setTextListener(context, ViewHolder.etName);
+        editTextController.setTextListener(context, ViewHolder.etPassword);
 
         return view;
     }
@@ -80,10 +84,13 @@ public class LoginFragment extends Fragment {
 
     private void initView(View view) {
         context = view.getContext();
-        tvGoRegister = view.findViewById(R.id.lf_tv_go_register);
-        btnLogin = view.findViewById(R.id.lf_btn_login);
-        etName = view.findViewById(R.id.lf_et_name);
-        etPassword = view.findViewById(R.id.lf_et_password);
+        sharedPreferences = requireActivity().getSharedPreferences(
+                getString(R.string.shared_preferences_user_info_key),
+                Context.MODE_PRIVATE);
+        ViewHolder.tvGoRegister = view.findViewById(R.id.lf_tv_go_register);
+        ViewHolder.btnLogin = view.findViewById(R.id.lf_btn_login);
+        ViewHolder.etName = view.findViewById(R.id.lf_et_name);
+        ViewHolder.etPassword = view.findViewById(R.id.lf_et_password);
     }
 
     private void initHandler() {
@@ -112,7 +119,17 @@ public class LoginFragment extends Fragment {
                         response = new JSONObject((String) msg.obj);
                         if (response.getInt("code") == 200) {
                             Toast.makeText(getActivity(), "登录成功", Toast.LENGTH_SHORT).show();
-                        } else if (response.getInt("code") == 400) {
+
+                            String key = getString(R.string.shared_preferences_token_key);
+                            String token = response.getJSONObject("data").getString("token");
+                            sharedPreferences.edit().putString(
+                                    key,
+                                    token).apply();
+
+                            Intent intent = new Intent(getActivity(), MainActivity.class);
+                            startActivity(intent);
+
+                        } else if (response.getInt("code") == 500) {
                             Toast.makeText(getActivity(), "用户名或密码错误", Toast.LENGTH_SHORT).show();
                         }
                     } catch (JSONException e) {
@@ -123,12 +140,11 @@ public class LoginFragment extends Fragment {
         };
     }
 
-    // 设置监听器
     private void setClickEvents() {
         // 点击登录
-        btnLogin.setOnClickListener(v -> {
-            String nameInput = etName.getText().toString();
-            String passwordInput = etPassword.getText().toString();
+        ViewHolder.btnLogin.setOnClickListener(v -> {
+            String nameInput = ViewHolder.etName.getText().toString();
+            String passwordInput = ViewHolder.etPassword.getText().toString();
             Boolean isUsernameEmpty = nameInput.isEmpty();
             Boolean isPasswordEmpty = passwordInput.isEmpty();
 
@@ -138,16 +154,16 @@ public class LoginFragment extends Fragment {
                     // 设置边框闪烁动画
                     editTextController.startBorderWidthBlinkAnimation(
                             context,
-                            etName,
-                            "#FF3333",
+                            ViewHolder.etName,
+                            context.getColor(R.color.red),
                             0, 3, 8, 600, 3);
                 }
                 if (isPasswordEmpty) {   // 密码为空
                     // 设置边框闪烁动画
                     editTextController.startBorderWidthBlinkAnimation(
                             context,
-                            etPassword,
-                            "#FF3333",
+                            ViewHolder.etPassword,
+                            context.getColor(R.color.red),
                             0, 3, 8, 600, 3);
                 }
                 return;
@@ -156,21 +172,21 @@ public class LoginFragment extends Fragment {
             // 登录逻辑
             JSONObject loginJson = new JSONObject();
             try {
-                loginJson.put("name", nameInput);
+                loginJson.put("name_or_phone", nameInput);
                 loginJson.put("password", passwordInput);
             } catch (JSONException e) {
                 throw new RuntimeException(e);
             }
 
             myRequest.post(
-                    "http://100.2.15.232:8080/user/login",
+                    myRequest.getBaseURL(context) + "/user/login",
                     loginJson,
                     handler,
                     LoginHandlerWhat);
         });
 
         // 点击注册，切换到注册 Fragment
-        tvGoRegister.setOnClickListener(v -> {
+        ViewHolder.tvGoRegister.setOnClickListener(v -> {
             if (switchListener != null) {
                 switchListener.switchToRegisterFragment();
             }

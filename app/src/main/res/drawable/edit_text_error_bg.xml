@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 错误状态专用背景（红色粗下划线） -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:bottom="0dp"
+        android:left="-2dp"
+        android:right="-2dp"
+        android:top="-2dp">
+        <shape android:shape="rectangle">
+            <stroke
+                android:width="0dp"
+                android:color="@android:color/transparent" />
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+    <item android:gravity="bottom">
+        <shape android:shape="rectangle">
+            <size android:height="2dp" />
+            <solid android:color="@android:color/holo_red_light" /> <!-- 错误红色 -->
+        </shape>
+    </item>
+</layer-list>

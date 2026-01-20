@@ -76,7 +76,7 @@ public class EditTextController {
      *
      * @param context      上下文
      * @param et           输入框
-     * @param colorString  颜色，例：#FF3333 纯红色
+     * @param color        颜色，例：#FF3333 纯红色
      * @param width1       宽度1
      * @param width2       宽度2
      * @param cornerRadius 圆角
@@ -85,7 +85,7 @@ public class EditTextController {
      */
     public void startBorderWidthBlinkAnimation(Context context,
                                                EditText et,
-                                               String colorString,
+                                               int color,
                                                int width1, int width2,
                                                int cornerRadius,
                                                int duration,
@@ -108,7 +108,7 @@ public class EditTextController {
 
         widthAnimator.addUpdateListener(animation -> {
             int currentWidth = (int) animation.getAnimatedValue();
-            shape.setStroke(currentWidth, Color.parseColor(colorString));
+            shape.setStroke(currentWidth, color);
             et.setBackground(shape);
         });
 
@@ -118,22 +118,22 @@ public class EditTextController {
     /**
      * 输入框边框颜色内容改变监听器, 边框闪烁动画
      *
-     * @param context          上下文
-     * @param et               输入框
-     * @param colorString1     颜色1，例：#FF3333 纯红色
-     * @param colorString2     颜色2，例：#FF3333 纯红色
-     * @param width            宽度
-     * @param cornerRadius     圆角
-     * @param duration         持续时间，单位ms
-     * @param finalColorString 最终颜色，例：#FFFFFF 白色
+     * @param context      上下文
+     * @param et           输入框
+     * @param color1       颜色1
+     * @param color2       颜色2
+     * @param width        宽度
+     * @param cornerRadius 圆角
+     * @param duration     持续时间，单位ms
+     * @param finalColor   最终颜色
      **/
     public void startBorderColorBlinkAnimation(Context context,
                                                EditText et,
-                                               String colorString1, String colorString2,
+                                               int color1, int color2,
                                                int width,
                                                int cornerRadius,
                                                int duration,
-                                               String finalColorString) {
+                                               int finalColor) {
         // 创建渐变Drawable
         GradientDrawable shape = new GradientDrawable();
         shape.setShape(GradientDrawable.RECTANGLE);
@@ -141,11 +141,11 @@ public class EditTextController {
 
         // 定义颜色动画：颜色1 → 颜色2 → 颜色1 → 颜色2 → finalColorString
         ValueAnimator colorAnimator = ValueAnimator.ofArgb(
-                Color.parseColor(colorString1), // 半透明红
-                Color.parseColor(colorString2),   // 纯红
-                Color.parseColor(colorString1), // 半透明红
-                Color.parseColor(colorString2),    // 纯红
-                Color.parseColor(finalColorString)   // 白色
+                color1, // 半透明红
+                color2,   // 纯红
+                color1, // 半透明红
+                color2,    // 纯红
+                finalColor   // 白色
         );
 
         colorAnimator.setDuration(duration);

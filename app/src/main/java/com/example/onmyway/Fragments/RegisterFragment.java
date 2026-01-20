@@ -67,9 +67,9 @@ public class RegisterFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_register, container, false);
 
         initViews(view);
-        //initHandler();
-        //setTextListener();
-        //setClickEvents();
+        initHandler();
+        setTextListener();
+        setClickEvents();
         return view;
     }
 
@@ -155,7 +155,7 @@ public class RegisterFragment extends Fragment {
                     editTextController.startBorderWidthBlinkAnimation(
                             context,
                             editTexts.get(i),
-                            "#FF3333",
+                            context.getColor(R.color.red),
                             0,
                             3,
                             8,
@@ -178,7 +178,7 @@ public class RegisterFragment extends Fragment {
                 editTextController.startBorderWidthBlinkAnimation(
                         context,
                         etConfirmPassword,
-                        "#FF3333",
+                        context.getColor(R.color.red),
                         0,
                         3,
                         8,
