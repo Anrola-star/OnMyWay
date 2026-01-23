@@ -26,6 +26,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.onmyway.R;
 import com.example.onmyway.Utils.EditTextController;
 import com.example.onmyway.Utils.MyRequest;
+import com.example.onmyway.Utils.SharedPreferencesManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,7 +40,7 @@ public class UserInfoActivity extends AppCompatActivity {
     private Context context;
     private MyRequest myRequest;
     private Handler handler;
-    private SharedPreferences sharedPreferences;
+    private SharedPreferencesManager sharedPreferencesManager;
     private TextView tvUserId;
     private EditText etNickName;
     private EditText etName;
@@ -85,7 +86,7 @@ public class UserInfoActivity extends AppCompatActivity {
         context = this;
         myRequest = new MyRequest();
         editTextController = new EditTextController();
-        sharedPreferences = getSharedPreferences(getString(R.string.shared_preferences_user_info_key), MODE_PRIVATE);
+        sharedPreferencesManager = SharedPreferencesManager.getInstance(context);
         tvUserId = findViewById(R.id.uia_tv_user_id);
         etNickName = findViewById(R.id.uia_et_nickname);
         etName = findViewById(R.id.uia_et_user_name);
@@ -329,7 +330,8 @@ public class UserInfoActivity extends AppCompatActivity {
 
     private void requestUserInfo() {
         String urlString = myRequest.getBaseURL(this) + "/user/id";
-        String token = sharedPreferences.getString(getString(R.string.shared_preferences_token_key), null);
+        String key = getString(R.string.shared_preferences_token_key);
+        String token = sharedPreferencesManager.get(key);
         myRequest.get(
                 urlString,
                 handler,

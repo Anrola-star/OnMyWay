@@ -6,4 +6,8 @@
 
     <string name="shared_preferences_user_info_key">user_info</string>
     <string name="shared_preferences_token_key">token</string>
+    <string name="shared_preferences_user_name_key">user_name</string>
+    <string name="shared_preferences_password_key">password</string>
+    <string name="shared_preferences_remember_pwd_key">isRememberPWD</string>
+    <string name="shared_preferences_auto_login_key">isAutoLogin</string>
 </resources>

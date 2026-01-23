@@ -26,15 +26,15 @@
         android:layout_marginBottom="12dp">
 
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="接单最大距离"
             android:textColor="#333333"
-            android:textSize="14sp"/>
+            android:textSize="14sp" />
 
         <Spinner
-            android:id="@+id/spinner_distance"
+            android:id="@+id/fo_spinner_distance"
             android:layout_width="120dp"
             android:layout_height="32dp"
             android:entries="@array/fo_order_distance"
@@ -50,12 +50,12 @@
         android:layout_marginBottom="12dp">
 
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="最低接单金额"
             android:textColor="#333333"
-            android:textSize="14sp"/>
+            android:textSize="14sp" />
 
         <Spinner
             android:id="@+id/fo_spinner_amount"
@@ -75,51 +75,64 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="接单类型"
+            android:layout_marginBottom="8dp"
+            android:text="自动接单设置"
             android:textColor="#333333"
-            android:textSize="14sp"
-            android:layout_marginBottom="8dp"/>
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="最大接单数"
+                android:textColor="#333333" />
+
+            <Spinner
+                android:id="@+id/fo_spinner_auto_accept_max"
+                android:layout_width="120dp"
+                android:layout_height="32dp"
+                android:background="@drawable/fo_selector_spinner_bg"
+                android:entries="@array/fo_auto_accept_max" />
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <CheckBox
-                android:id="@+id/cb_food"
-                android:layout_width="wrap_content"
+            <TextView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="美食外卖"
-                android:checked="true"
-                android:buttonTint="#2196F3"/>
+                android:layout_weight="1"
+                android:text="接单优先"
+                android:textColor="#333333" />
 
-            <CheckBox
-                android:id="@+id/cb_express"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="快递跑腿"
-                android:checked="true"
-                android:buttonTint="#2196F3"/>
-
-            <CheckBox
-                android:id="@+id/cb_grocery"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="超市便利"
-                android:buttonTint="#2196F3"/>
+            <Spinner
+                android:id="@+id/fo_spinner_auto_accept_priority"
+                android:layout_width="120dp"
+                android:layout_height="32dp"
+                android:background="@drawable/fo_selector_spinner_bg"
+                android:entries="@array/fo_auto_accept_priority" />
         </LinearLayout>
+
     </LinearLayout>
 
     <!-- 保存按钮 -->
     <Button
         android:id="@+id/btn_save_setting"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="16dp"
         android:backgroundTint="#2196F3"
         android:text="保存设置"
         android:textColor="#FFFFFF"
-        android:textSize="16sp"
-        android:layout_marginTop="16dp"/>
+        android:textSize="16sp" />
 
 </LinearLayout>
 

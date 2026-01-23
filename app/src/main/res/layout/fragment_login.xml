@@ -119,18 +119,17 @@
                     android:textColor="#666666"
                     android:textSize="14sp" />
 
-                <TextView
-                    android:id="@+id/lf_tv_forget_pwd"
-                    android:layout_width="0dp"
+                <CheckBox
+                    android:id="@+id/lf_cb_auto_login"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="end"
-                    android:text="忘记密码？"
-                    android:textColor="#2196F3"
-                    android:textSize="14sp" />
+                    android:buttonTint="#2196F3"
+                    android:text="自动登录"
+                    android:textColor="#666666" />
             </LinearLayout>
 
             <!-- 登录按钮 -->
+
             <Button
                 android:id="@+id/lf_btn_login"
                 android:layout_width="match_parent"

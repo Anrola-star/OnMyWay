@@ -1,7 +1,10 @@
 package com.example.onmyway.Fragments;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 
@@ -18,6 +21,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.Toast;
@@ -26,6 +30,7 @@ import com.example.onmyway.Adapter.OrderListAdapter;
 import com.example.onmyway.Entity.Order;
 import com.example.onmyway.R;
 import com.example.onmyway.Utils.MyRequest;
+import com.example.onmyway.Utils.SharedPreferencesManager;
 import com.github.mikephil.charting.data.Entry;
 import com.google.android.material.tabs.TabItem;
 import com.google.android.material.tabs.TabLayout;
@@ -43,7 +48,8 @@ public class OrderFragment extends Fragment {
     private Context context;
     private MyRequest myRequest = new MyRequest();
     private Handler handler;
-    private SharedPreferences sharedPreferences;
+    private SharedPreferencesManager sharedPreferencesManager;
+
 
     private List<Order> orderList = new ArrayList<>();
     private OrderListAdapter orderListAdapter;
@@ -53,6 +59,10 @@ public class OrderFragment extends Fragment {
         private static RecyclerView vpOrderList;
         private static TabLayout tabOrderType;
         private static Spinner spinnerSort;
+
+        private static Button btnOrderSetting;
+        private static Button btnOrderRefresh;
+
     }
 
     private static class Value {
@@ -86,13 +96,12 @@ public class OrderFragment extends Fragment {
 
     private void initViews(View view) {
         context = view.getContext();
+        sharedPreferencesManager = SharedPreferencesManager.getInstance(context);
         Value.baseURL = myRequest.getBaseURL(context);
-        sharedPreferences = requireActivity().getSharedPreferences(
-                getString(R.string.shared_preferences_user_info_key),
-                Context.MODE_PRIVATE);
         ViewHolder.vpOrderList = view.findViewById(R.id.of_vp_order_list);
         ViewHolder.tabOrderType = view.findViewById(R.id.of_tab_order_type);
         ViewHolder.spinnerSort = view.findViewById(R.id.of_spinner_sort);
+        ViewHolder.btnOrderSetting = view.findViewById(R.id.of_btn_order_setting);
     }
 
     private void initValues() {
@@ -115,7 +124,6 @@ public class OrderFragment extends Fragment {
     }
 
     private void initHandler() {
-        //TODO
         handler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(@NonNull Message msg) {
@@ -222,6 +230,41 @@ public class OrderFragment extends Fragment {
 
             }
         });
+        ViewHolder.btnOrderSetting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showOrderSettingDialog();
+
+            }
+        });
+    }
+
+    private void showOrderSettingDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(null);
+        builder.setPositiveButton(null, null);
+        builder.setNegativeButton(null, null);
+        View view = LayoutInflater.from(context).inflate(R.layout.fo_dialog_order_setting, null);
+
+        Button btnSaveSetting = view.findViewById(R.id.btn_save_setting);
+        Spinner spinnerAmount = view.findViewById(R.id.fo_spinner_amount);
+        Spinner spinnerDistance = view.findViewById(R.id.fo_spinner_distance);
+        Spinner spinnerAutoAcceptMax = view.findViewById(R.id.fo_spinner_auto_accept_max);
+        Spinner spinnerAutoAcceptPriority = view.findViewById(R.id.fo_spinner_auto_accept_priority);
+
+        btnSaveSetting.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+
+        builder.setView(view);
+        AlertDialog dialog = builder.create();
+        dialog.setCancelable(false); // 禁止返回键取消
+        dialog.setCanceledOnTouchOutside(false); // 禁止点击空白处取消
+        dialog.show();
     }
 
     private void requestOrder(boolean isUnreceivedOrderPage, int orderBy) {
@@ -231,7 +274,7 @@ public class OrderFragment extends Fragment {
         } else {
             String url = Value.baseURL + "/order/all/received?" + "orderBy=" + orderBy;
             String key = getString(R.string.shared_preferences_token_key);
-            String token = sharedPreferences.getString(key, null);
+            String token = sharedPreferencesManager.get(key);
             myRequest.get(url, handler, HandlerWhats.getOrderHandlerWhat, token);
         }
     }
@@ -239,7 +282,7 @@ public class OrderFragment extends Fragment {
     private void requestAcceptOrder(String orderNo) {
         String url = Value.baseURL + "/order/accept?orderNo=" + orderNo;
         String key = getString(R.string.shared_preferences_token_key);
-        String token = sharedPreferences.getString(key, null);
+        String token = sharedPreferencesManager.get(key);
         myRequest.get(url, handler, HandlerWhats.acceptOrderHandlerWhat, token);
     }
 }

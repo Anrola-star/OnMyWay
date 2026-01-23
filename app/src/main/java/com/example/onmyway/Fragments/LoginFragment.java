@@ -18,6 +18,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,6 +32,7 @@ import org.json.JSONObject;
 import com.example.onmyway.Interface.OnLoginFragmentSwitchListener;
 import com.example.onmyway.Utils.EditTextController;
 import com.example.onmyway.Utils.MyRequest;
+import com.example.onmyway.Utils.SharedPreferencesManager;
 
 public class LoginFragment extends Fragment {
 
@@ -39,13 +41,15 @@ public class LoginFragment extends Fragment {
         private static EditText etName;
         private static EditText etPassword;
         private static TextView tvGoRegister;  // 注册按钮
+        private static CheckBox cbRememberPWD;
+        private static CheckBox cbAutoLogin;
     }
     private Context context;
     private Handler handler;
     private OnLoginFragmentSwitchListener switchListener;   // 切换登录注册界面监听器
     private final EditTextController editTextController = new EditTextController();  // 输入框控制器
     private final MyRequest myRequest = new MyRequest();  // 请求类
-    private SharedPreferences sharedPreferences;
+    private SharedPreferencesManager sharedPreferencesManager;
     private final int LoginHandlerWhat = 1;
     private final String TAG = "LoginFragment";
 
@@ -73,7 +77,7 @@ public class LoginFragment extends Fragment {
         setClickEvents();
         editTextController.setTextListener(context, ViewHolder.etName);
         editTextController.setTextListener(context, ViewHolder.etPassword);
-
+        initData();
         return view;
     }
 
@@ -85,15 +89,14 @@ public class LoginFragment extends Fragment {
 
     private void initView(View view) {
         context = view.getContext();
-        sharedPreferences = requireActivity().getSharedPreferences(
-                getString(R.string.shared_preferences_user_info_key),
-                Context.MODE_PRIVATE);
+        sharedPreferencesManager = SharedPreferencesManager.getInstance(context);
         ViewHolder.tvGoRegister = view.findViewById(R.id.lf_tv_go_register);
         ViewHolder.btnLogin = view.findViewById(R.id.lf_btn_login);
         ViewHolder.etName = view.findViewById(R.id.lf_et_name);
         ViewHolder.etPassword = view.findViewById(R.id.lf_et_password);
+        ViewHolder.cbRememberPWD = view.findViewById(R.id.lf_cb_remember_pwd);
+        ViewHolder.cbAutoLogin = view.findViewById(R.id.lf_cb_auto_login);
     }
-
     private void initHandler() {
         handler = new Handler(Looper.getMainLooper()) {
             @Override
@@ -108,7 +111,6 @@ public class LoginFragment extends Fragment {
                             .setMessage("请求失败, 无响应")
                             .setPositiveButton("确定", null)
                             .show();
-                    //Toast.makeText(getActivity(), "登录失败, 无响应", Toast.LENGTH_SHORT).show();
                     return; // 终止后续解析逻辑
                 }
 
@@ -121,15 +123,24 @@ public class LoginFragment extends Fragment {
                         if (response.getInt("code") == 200) {
                             Toast.makeText(getActivity(), "登录成功", Toast.LENGTH_SHORT).show();
 
-                            String key = getString(R.string.shared_preferences_token_key);
+                            String tKey = getString(R.string.shared_preferences_token_key);
+                            String nKey = getString(R.string.shared_preferences_user_name_key);
+                            String rKey = getString(R.string.shared_preferences_remember_pwd_key);
+                            String aKey = getString(R.string.shared_preferences_auto_login_key);
                             String token = response.getJSONObject("data").getString("token");
-                            sharedPreferences.edit().putString(
-                                    key,
-                                    token).apply();
+
+                            sharedPreferencesManager.save(tKey, token);
+                            sharedPreferencesManager.save(nKey, ViewHolder.etName.getText().toString());
+                            sharedPreferencesManager.save(rKey, ViewHolder.cbRememberPWD.isChecked());
+                            sharedPreferencesManager.save(aKey, ViewHolder.cbAutoLogin.isChecked());
+
+                            if (ViewHolder.cbRememberPWD.isChecked()){
+                                String  pKey = getString(R.string.shared_preferences_password_key);
+                                sharedPreferencesManager.save(pKey, ViewHolder.etPassword.getText().toString());
+                            }
 
                             Intent intent = new Intent(getActivity(), MainActivity.class);
                             startActivity(intent);
-
                         } else if (response.getInt("code") == 500) {
                             Toast.makeText(getActivity(), "用户名或密码错误", Toast.LENGTH_SHORT).show();
                         }
@@ -140,7 +151,6 @@ public class LoginFragment extends Fragment {
             }
         };
     }
-
     private void setClickEvents() {
         // 点击登录
         ViewHolder.btnLogin.setOnClickListener(v -> {
@@ -185,12 +195,46 @@ public class LoginFragment extends Fragment {
                     handler,
                     LoginHandlerWhat);
         });
-
         // 点击注册，切换到注册 Fragment
         ViewHolder.tvGoRegister.setOnClickListener(v -> {
             if (switchListener != null) {
                 switchListener.switchToRegisterFragment();
             }
         });
+        // 自动登录点击
+        ViewHolder.cbAutoLogin.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                ViewHolder.cbRememberPWD.setChecked(true);
+            }
+        });
+    }
+
+
+    private void initData() {
+        String nKey = getString(R.string.shared_preferences_user_name_key);
+        String rKey = getString(R.string.shared_preferences_remember_pwd_key);
+        String aKey = getString(R.string.shared_preferences_auto_login_key);
+        if (sharedPreferencesManager.have(nKey)) {
+            String userName = sharedPreferencesManager.get(nKey);
+            ViewHolder.etName.setText(userName);
+        }
+        if (sharedPreferencesManager.have(rKey)) {
+            boolean isRememberPWD = sharedPreferencesManager.getBoolean(rKey);
+            if (isRememberPWD) {
+                String pKey = getString(R.string.shared_preferences_password_key);
+                if (sharedPreferencesManager.have(pKey)) {
+                    String password = sharedPreferencesManager.get(pKey);
+                    ViewHolder.etPassword.setText(password);
+                }
+            }
+            ViewHolder.cbRememberPWD.setChecked(isRememberPWD);
+        }
+        if (sharedPreferencesManager.have(aKey)) {
+            boolean isAutoLogin = sharedPreferencesManager.getBoolean(aKey);
+            ViewHolder.cbAutoLogin.setChecked(isAutoLogin);
+            if (isAutoLogin) {
+                ViewHolder.btnLogin.performClick();
+            }
+        }
     }
 }

@@ -8,6 +8,7 @@
 
     <!-- 距离/金额数组-->
     <string-array name="fo_order_distance">
+        <item>0.5公里内</item>
         <item>1公里内</item>
         <item>3公里内</item>
         <item>5公里内</item>
@@ -15,10 +16,26 @@
     </string-array>
 
     <string-array name="fo_order_amount">
+        <item>1元以上</item>
+        <item>3元以上</item>
         <item>5元以上</item>
         <item>10元以上</item>
         <item>20元以上</item>
         <item>不限金额</item>
+    </string-array>
+
+    <string-array name="fo_auto_accept_max">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </string-array>
+
+    <string-array name="fo_auto_accept_priority">
+        <item>距离优先</item>
+        <item>金额优先</item>
+        <item>时间优先</item>
     </string-array>
 
 

@@ -36,6 +36,7 @@ import com.example.onmyway.Entity.Avatar;
 import com.example.onmyway.R;
 import com.example.onmyway.Utils.AssetsAvatarManager;
 import com.example.onmyway.Utils.MyRequest;
+import com.example.onmyway.Utils.SharedPreferencesManager;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.components.XAxis;
@@ -94,7 +95,7 @@ public class MineFragment extends Fragment {
         private static int userAvatar;
     }
     private Context context;
-    private SharedPreferences sharedPreferences;
+    private SharedPreferencesManager sharedPreferencesManager;
     private Handler handler;
     private final MyRequest myRequest = new MyRequest();
     private boolean isWeekData = true; // 当前显示本周/本月数据
@@ -132,9 +133,7 @@ public class MineFragment extends Fragment {
     // 初始化控件
     private void initView(View view) {
         context = view.getContext();
-        sharedPreferences = requireActivity().getSharedPreferences(
-                getString(R.string.shared_preferences_user_info_key),
-                Context.MODE_PRIVATE);
+        sharedPreferencesManager = SharedPreferencesManager.getInstance(context);
         ViewHolder.ivAvatar = view.findViewById(R.id.mf_iv_avatar);
         ViewHolder.tvNickname = view.findViewById(R.id.mf_tv_nickname);
         ViewHolder.tvRiderId = view.findViewById(R.id.mf_tv_rider_id);
@@ -350,7 +349,7 @@ public class MineFragment extends Fragment {
         String key = getString(R.string.shared_preferences_token_key);
         String weekUrl = myRequest.getBaseURL(context) + "/income/getWeekDailyIncomeByUserId";
         String monthUrl = myRequest.getBaseURL(context) + "/income/getMonthDailyIncomeByUserId";
-        String token = sharedPreferences.getString(key, null);
+        String token = sharedPreferencesManager.get(key);
         // 获取本周/本月收益数据
         myRequest.get(weekUrl,
                 handler,
@@ -366,7 +365,7 @@ public class MineFragment extends Fragment {
         String key = getString(R.string.shared_preferences_token_key);
         String totalIncomeUrl = myRequest.getBaseURL(context) + "/income/getTotalIncomeByUserId";
         String getUserInfoUrl = myRequest.getBaseURL(context) + "/user/id";
-        String token = sharedPreferences.getString(key, null);
+        String token = sharedPreferencesManager.get(key);
         myRequest.get(totalIncomeUrl,
                 handler,
                 HandlerWhats.getTotalIncomeHandlerWhat,
