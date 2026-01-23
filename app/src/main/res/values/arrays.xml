@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="fo_order_sort_type">
-        <item>按距离排序</item>
         <item>按时间排序</item>
+        <item>按距离排序</item>
         <item>按金额排序</item>
     </string-array>
 

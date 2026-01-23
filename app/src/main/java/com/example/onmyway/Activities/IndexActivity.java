@@ -39,12 +39,12 @@ public class IndexActivity extends AppCompatActivity {
         });
 
         //入口
-        //Intent LoginIntent = new Intent(this, LoginActivity.class);
-        //startActivity(LoginIntent);
+        Intent LoginIntent = new Intent(this, LoginActivity.class);
+        startActivity(LoginIntent);
 
         //测试入口
-        Intent MainIntent = new Intent(this, MainActivity.class);
-        startActivity(MainIntent);
+        //Intent MainIntent = new Intent(this, MainActivity.class);
+        //startActivity(MainIntent);
         //test();
     }
 

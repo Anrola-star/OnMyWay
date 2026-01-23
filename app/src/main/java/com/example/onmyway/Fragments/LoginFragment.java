@@ -47,6 +47,7 @@ public class LoginFragment extends Fragment {
     private final MyRequest myRequest = new MyRequest();  // 请求类
     private SharedPreferences sharedPreferences;
     private final int LoginHandlerWhat = 1;
+    private final String TAG = "LoginFragment";
 
     @Override
     public void onAttach(@NonNull android.content.Context context) {
@@ -101,7 +102,7 @@ public class LoginFragment extends Fragment {
 
                 // 空数据处理
                 if (msg.obj == null) {
-                    Log.e("LoginError", "JSON解析失败：响应字符串为空");
+                    Log.e(TAG, "JSON解析失败：响应字符串为空");
                     AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
                     builder.setTitle("错误")
                             .setMessage("请求失败, 无响应")

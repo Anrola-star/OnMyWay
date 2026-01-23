@@ -1,5 +1,6 @@
 package com.example.onmyway.Adapter;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,6 +24,8 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
     private List<Order> orderList;
     // 接单按钮点击事件回调
     private OnTakeOrderClickListener onTakeOrderClickListener;
+
+    private boolean takeOrderBtnVisible = true;
 
     // 构造方法
     public OrderListAdapter(Context context, List<Order> orderList) {
@@ -55,6 +58,12 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
         holder.tvOrderPublisher.setText("发布人：" + currentOrder.getReceiverName());
         holder.tvOrderDistance.setText("距离：" + currentOrder.getDistance());
 
+        if (takeOrderBtnVisible){
+            holder.btnTakeOrder.setVisibility(View.VISIBLE);
+        }else{
+            holder.btnTakeOrder.setVisibility(View.GONE);
+        }
+
         // 接单按钮点击事件
         holder.btnTakeOrder.setOnClickListener(v -> {
             if (onTakeOrderClickListener != null) {
@@ -71,6 +80,13 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
     public void updateData(List<Order> newOrderList) {
         this.orderList = newOrderList;
         notifyDataSetChanged(); // 通知列表数据刷新
+    }
+
+    public void removeOrder(int position) {
+        if (orderList != null && position >= 0 && position < orderList.size()) {
+            orderList.remove(position);
+            notifyItemRemoved(position);
+        }
     }
 
     public static class OrderViewHolder extends RecyclerView.ViewHolder {
@@ -94,6 +110,8 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
             tvOrderDistance = itemView.findViewById(R.id.tv_order_distance);
             btnTakeOrder = itemView.findViewById(R.id.btn_take_order);
         }
+
+
     }
 
     public interface OnTakeOrderClickListener {
@@ -110,5 +128,19 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
      */
     public void setOnTakeOrderClickListener(OnTakeOrderClickListener listener) {
         this.onTakeOrderClickListener = listener;
+    }
+
+    public void setTakeOrderBtnVisibility(boolean visible) {
+        takeOrderBtnVisible = visible;
+    }
+
+    public int getPositionByOderNo(String orderNo) {
+        for (int i = 0; i < orderList.size(); i++) {
+            Order order = orderList.get(i);
+            if (order.getNo().equals(orderNo)) {
+                return i;
+            }
+        }
+        return -1;
     }
 }

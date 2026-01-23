@@ -67,6 +67,7 @@ public class UserInfoActivity extends AppCompatActivity {
     private final String nickname_SharedDataKey = "nickname";
     private final String phone_SharedDataKey = "phone";
     private final String password_SharedDataKey = "password";
+    private final String TAG = "UserInfoActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -197,7 +198,7 @@ public class UserInfoActivity extends AppCompatActivity {
 
                 // 空数据处理
                 if (msg.obj == null) {
-                    Log.e("IncomeError", "JSON解析失败：响应字符串为空");
+                    Log.e(TAG, "JSON解析失败：响应字符串为空");
                     AlertDialog.Builder builder = new AlertDialog.Builder(context);
                     builder.setTitle("错误")
                             .setMessage("请求失败, 无响应")

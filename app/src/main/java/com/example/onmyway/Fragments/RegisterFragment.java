@@ -46,7 +46,7 @@ public class RegisterFragment extends Fragment {
     private EditText etPassword;
     private EditText etConfirmPassword;
     private ArrayList<EditText> editTexts;
-
+    private final String TAG = "RegisterFragment";
     private final int RegisterHandlerWhat = 1;
 
     @Override
@@ -100,7 +100,7 @@ public class RegisterFragment extends Fragment {
 
                 // 空数据处理
                 if (msg.obj == null) {
-                    Log.e("LoginError", "JSON解析失败：响应字符串为空");
+                    Log.e(TAG, "JSON解析失败：响应字符串为空");
                     AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
                     builder.setTitle("错误")
                             .setMessage("请求失败, 无响应")

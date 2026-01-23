@@ -17,6 +17,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.Toast;
 
@@ -33,7 +35,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class OrderFragment extends Fragment {
     private Context context;
@@ -43,16 +47,26 @@ public class OrderFragment extends Fragment {
 
     private List<Order> orderList = new ArrayList<>();
     private OrderListAdapter orderListAdapter;
-    private String baseURL;
+
 
     private static class ViewHolder {
         private static RecyclerView vpOrderList;
         private static TabLayout tabOrderType;
+        private static Spinner spinnerSort;
     }
 
-    private final String TAG = "OrderFragment";
+    private static class Value {
 
-    private final int getOrderHandlerWhat = 1;
+        private static final String TAG = "OrderFragment";
+        private static String baseURL;
+        private static boolean isUnreceivedOrderPage = true;
+        private static int orderByIndex = 0;
+    }
+
+    private static class HandlerWhats {
+        private static final int getOrderHandlerWhat = 1;
+        private static final int acceptOrderHandlerWhat = 2;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -61,7 +75,9 @@ public class OrderFragment extends Fragment {
 
         initViews(view);
         initHandler();
-        requestUnreceivedOrder();
+        initValues();
+
+        requestOrder(Value.isUnreceivedOrderPage, 0);
         setClickListener();
         initRecyclerView();
 
@@ -70,12 +86,16 @@ public class OrderFragment extends Fragment {
 
     private void initViews(View view) {
         context = view.getContext();
-        baseURL = myRequest.getBaseURL(context);
+        Value.baseURL = myRequest.getBaseURL(context);
         sharedPreferences = requireActivity().getSharedPreferences(
                 getString(R.string.shared_preferences_user_info_key),
                 Context.MODE_PRIVATE);
         ViewHolder.vpOrderList = view.findViewById(R.id.of_vp_order_list);
         ViewHolder.tabOrderType = view.findViewById(R.id.of_tab_order_type);
+        ViewHolder.spinnerSort = view.findViewById(R.id.of_spinner_sort);
+    }
+
+    private void initValues() {
     }
 
     private void initRecyclerView() {
@@ -89,9 +109,8 @@ public class OrderFragment extends Fragment {
         ViewHolder.vpOrderList.setAdapter(orderListAdapter);
 
         // 设置接单按钮点击事件
-        orderListAdapter.setOnTakeOrderClickListener((position, orderBean) -> {
-            //TODO
-            Toast.makeText(getContext(), "已接单：" + orderBean.getNo(), Toast.LENGTH_SHORT).show();
+        orderListAdapter.setOnTakeOrderClickListener((position, order) -> {
+            requestAcceptOrder(order.getNo());
         });
     }
 
@@ -104,7 +123,7 @@ public class OrderFragment extends Fragment {
 
                 // 空数据处理
                 if (msg.obj == null) {
-                    Log.e("IncomeError", "JSON解析失败：响应字符串为空");
+                    Log.e(Value.TAG, "JSON解析失败：响应字符串为空");
                     AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
                     builder.setTitle("错误")
                             .setMessage("请求失败, 无响应")
@@ -116,7 +135,7 @@ public class OrderFragment extends Fragment {
 
                 // 响应数据处理
                 switch (msg.what) {
-                    case getOrderHandlerWhat: // 获取未接单订单
+                    case HandlerWhats.getOrderHandlerWhat: // 获取未接单订单
                         try {
                             JSONArray jsonArray = new JSONArray(msg.obj.toString());
                             for (int i = 0; i < jsonArray.length(); i++) {
@@ -141,7 +160,20 @@ public class OrderFragment extends Fragment {
                             }
                             orderListAdapter.updateData(orderList);
                         } catch (JSONException e) {
-                            throw new RuntimeException(e);
+                            Log.e(Value.TAG, "JSON解析失败：" + e.getMessage());
+                        }
+                        break;
+
+                    case HandlerWhats.acceptOrderHandlerWhat: // 接单
+                        try {
+                            JSONObject jsonObject = new JSONObject(msg.obj.toString());
+                            String orderNo = jsonObject.getString("data");
+                            Toast.makeText(getContext(), jsonObject.getString("msg"), Toast.LENGTH_SHORT).show();
+
+                            int position = orderListAdapter.getPositionByOderNo(orderNo);
+                            orderListAdapter.removeOrder(position);
+                        } catch (JSONException e) {
+                            Log.e(Value.TAG, "JSON解析失败：" + e.getMessage());
                         }
                         break;
                 }
@@ -151,19 +183,20 @@ public class OrderFragment extends Fragment {
 
     private void setClickListener() {
         ViewHolder.tabOrderType.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 switch (tab.getPosition()) {
                     case 0:
-                        orderList.clear();
-                        requestUnreceivedOrder();
+                        Value.isUnreceivedOrderPage = true;
+                        orderListAdapter.setTakeOrderBtnVisibility(true);
                         break;
                     case 1:
-                        orderList.clear();
-                        requestReceivedOrder();
+                        Value.isUnreceivedOrderPage = false;
+                        orderListAdapter.setTakeOrderBtnVisibility(false);
                         break;
                 }
+                orderList.clear();
+                requestOrder(Value.isUnreceivedOrderPage, Value.orderByIndex);
             }
 
             @Override
@@ -176,16 +209,37 @@ public class OrderFragment extends Fragment {
 
             }
         });
+        ViewHolder.spinnerSort.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Value.orderByIndex = position;
+                orderList.clear();
+                requestOrder(Value.isUnreceivedOrderPage, Value.orderByIndex);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
     }
 
-    private void requestUnreceivedOrder() {
-        String url = baseURL + "/order/all/received";
-        myRequest.get(url, handler, getOrderHandlerWhat);
+    private void requestOrder(boolean isUnreceivedOrderPage, int orderBy) {
+        if (isUnreceivedOrderPage) {
+            String url = Value.baseURL + "/order/all/unreceived?" + "orderBy=" + orderBy;
+            myRequest.get(url, handler, HandlerWhats.getOrderHandlerWhat);
+        } else {
+            String url = Value.baseURL + "/order/all/received?" + "orderBy=" + orderBy;
+            String key = getString(R.string.shared_preferences_token_key);
+            String token = sharedPreferences.getString(key, null);
+            myRequest.get(url, handler, HandlerWhats.getOrderHandlerWhat, token);
+        }
     }
 
-    private void requestReceivedOrder() {
-        String url = baseURL + "/order/all/unreceived";
-        String token = sharedPreferences.getString(getString(R.string.shared_preferences_token_key), "");
-        myRequest.get(url, handler, getOrderHandlerWhat, token);
+    private void requestAcceptOrder(String orderNo) {
+        String url = Value.baseURL + "/order/accept?orderNo=" + orderNo;
+        String key = getString(R.string.shared_preferences_token_key);
+        String token = sharedPreferences.getString(key, null);
+        myRequest.get(url, handler, HandlerWhats.acceptOrderHandlerWhat, token);
     }
 }

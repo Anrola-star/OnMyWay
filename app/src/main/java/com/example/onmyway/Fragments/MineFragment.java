@@ -155,7 +155,7 @@ public class MineFragment extends Fragment {
 
                 // 空数据处理
                 if (msg.obj == null) {
-                    Log.e("IncomeError", "JSON解析失败：响应字符串为空");
+                    Log.e(TAG, "JSON解析失败：响应字符串为空");
                     AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
                     builder.setTitle("错误")
                             .setMessage("请求失败, 无响应")
