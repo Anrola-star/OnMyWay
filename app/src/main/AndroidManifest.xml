@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.anrola.onmyway">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!--允许获取粗略位置，若用GPS实现定位小蓝点功能则必选-->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
@@ -33,6 +38,10 @@
         <activity
             android:name=".Activities.MainActivity"
             android:exported="false" />
+
+        <meta-data
+            android:name="com.amap.api.v2.apikey"
+            android:value="42414314cc6a061e0b0472146dcaca0e"/>
     </application>
 
 </manifest>

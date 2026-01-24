@@ -3,18 +3,29 @@ plugins {
 }
 
 android {
-    namespace = "com.example.onmyway"
+    namespace = "com.anrola.onmyway"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.onmyway"
-        minSdk = 35
+        applicationId = "com.anrola.onmyway"
+        minSdk = 21
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+
+    signingConfigs {
+        create("androiddebug") {
+            storeFile = file("D:/IDE/AndroidStudio/KeyStore/app.keystore")
+            storePassword = "197319731973"
+            keyAlias = "androiddebug"
+            keyPassword = "197319731973"
+        }
+
+    }
+
 
     buildTypes {
         release {
@@ -31,6 +42,13 @@ android {
     }
     buildFeatures {
         viewBinding = true
+    }
+    
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            pickFirsts += "assets/location_map_gps_locked.png"
+        }
     }
 }
 
@@ -50,6 +68,6 @@ dependencies {
     implementation(libs.mpandroidChart)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-
+    implementation (libs.amap3d)
 }
 

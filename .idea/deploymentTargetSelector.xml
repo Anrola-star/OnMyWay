@@ -2,9 +2,9 @@
 <project version="4">
   <component name="deploymentTargetSelector">
     <selectionStates>
-      <SelectionState runConfigName="app">
+      <SelectionState runConfigName="OnMyWay">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-01-09T07:45:27.687571900Z">
+        <DropdownSelection timestamp="2026-01-24T08:15:21.968649700Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=D:\local_lib\AndroidAVD\.android\avd\Pixel_9_Pro_2.avd" />

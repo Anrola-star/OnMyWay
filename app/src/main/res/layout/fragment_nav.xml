@@ -1,15 +1,95 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 根布局：约束布局，适配所有屏幕，设置背景色为浅灰（APP通用底色） -->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Fragments.NavFragment">
+    android:background="#F5F5F5">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <FrameLayout
+        android:id="@+id/fl_map_container"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@android:drawable/editbox_background"
+        android:elevation="2dp"
+        app:layout_constraintBottom_toTopOf="@id/ll_bottom_bar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" >
+
+        <com.amap.api.maps.MapView
+            android:id="@+id/fn_map"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </FrameLayout>
+
+    <!-- 底部功能栏：接单核心操作（抢单/我的订单/设置） -->
+    <LinearLayout
+        android:id="@+id/ll_bottom_bar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="导航"
-        android:textSize="96sp"
-        android:textStyle="bold" />
+        android:layout_height="60dp"
+        android:background="#FFFFFF"
+        android:elevation="4dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
-</FrameLayout>
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switch1"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:showText="false"
+            android:splitTrack="false"
+            android:text="自动接单" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="30dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:background="#E8E8E8" />
+
+        <!-- 我的订单 -->
+        <TextView
+            android:id="@+id/tv_my_orders"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:text="我的订单"
+            android:textColor="#333333"
+            android:textSize="14sp" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="30dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:background="#E8E8E8" />
+
+        <!-- 设置 -->
+        <TextView
+            android:id="@+id/tv_setting"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:text="设置"
+            android:textColor="#333333"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
