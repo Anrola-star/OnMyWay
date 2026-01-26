@@ -6,6 +6,22 @@ android {
     namespace = "com.anrola.onmyway"
     compileSdk = 35
 
+    signingConfigs {
+        create("androiddebug") {
+            storeFile = file("D:\\IDE\\AndroidStudio\\KeyStore\\myKeyStore.jks")
+            storePassword = "197319731973"
+            keyAlias = "androiddebug"
+            keyPassword = "197319731973"
+        }
+        create("androidrelease") {
+            storeFile = file("D:\\IDE\\AndroidStudio\\KeyStore\\myKeyStore.jks")
+            storePassword = "197319731973"
+            keyPassword = "197319731973"
+            keyAlias = "androidrelease"
+        }
+
+    }
+
     defaultConfig {
         applicationId = "com.anrola.onmyway"
         minSdk = 21
@@ -14,16 +30,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    signingConfigs {
-        create("androiddebug") {
-            storeFile = file("D:/IDE/AndroidStudio/KeyStore/app.keystore")
-            storePassword = "197319731973"
-            keyAlias = "androiddebug"
-            keyPassword = "197319731973"
-        }
-
+        signingConfig = signingConfigs.getByName("androiddebug")
     }
 
 
@@ -34,6 +41,11 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("androidrelease")
+        }
+        debug {
+            isDebuggable = true
+            signingConfig = signingConfigs.getByName("androiddebug")
         }
     }
     compileOptions {

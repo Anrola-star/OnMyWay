@@ -12,6 +12,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.anrola.onmyway.Entity.Order;
 import com.anrola.onmyway.R;
 
+import org.json.JSONException;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -23,8 +26,8 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
     private List<Order> orderList;
     // 接单按钮点击事件回调
     private OnTakeOrderClickListener onTakeOrderClickListener;
-
-    private boolean takeOrderBtnVisible = true;
+    private OnPickOrderClickListener onPickOrderClickListener;
+    private OnDoneOrderClickListener onDoneOrderClickListener;
 
     // 构造方法
     public OrderListAdapter(Context context, List<Order> orderList) {
@@ -48,6 +51,14 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
         if (currentOrder == null) {
             return;
         }
+        String startLocationName = "";
+        String endLocationName = "";
+        try {
+            startLocationName =currentOrder.getStartLocation().getString("name");
+            endLocationName =currentOrder.getEndLocation().getString("name");
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
 
         // 填充数据到控件
         holder.tvOrderId.setText("订单ID：" + currentOrder.getNo());
@@ -55,18 +66,52 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
         holder.tvOrderAmount.setText(String.valueOf(currentOrder.getAmount()));
         holder.tvOrderTime.setText(currentOrder.getStartTime());
         holder.tvOrderPublisher.setText("发布人：" + currentOrder.getReceiverName());
+        holder.tvOrderFromAndTo.setText(startLocationName + " -> " + endLocationName);
         holder.tvOrderDistance.setText("距离：" + currentOrder.getDistance());
 
-        if (takeOrderBtnVisible){
-            holder.btnTakeOrder.setVisibility(View.VISIBLE);
-        }else{
-            holder.btnTakeOrder.setVisibility(View.GONE);
+        if (currentOrder.isAccepted()) {
+            if (currentOrder.isPickup()) {
+                holder.tvOrderStatus.setText("配送中");
+            }else {
+                holder.tvOrderStatus.setText("待取单");
+            }
+        } else {
+            holder.tvOrderStatus.setText("待接单");
         }
+
+        if (currentOrder.isAccepted()){
+            holder.btnTakeOrder.setVisibility(View.GONE);
+            if (currentOrder.isPickup()){
+                holder.btnPickOrder.setVisibility(View.GONE);
+                holder.btnDoneOrder.setVisibility(View.VISIBLE);
+            }else{
+                holder.btnPickOrder.setVisibility(View.VISIBLE);
+                holder.btnDoneOrder.setVisibility(View.GONE);
+            }
+        }else{
+            holder.btnTakeOrder.setVisibility(View.VISIBLE);
+            holder.btnPickOrder.setVisibility(View.GONE);
+            holder.btnDoneOrder.setVisibility(View.GONE);
+        }
+
+
 
         // 接单按钮点击事件
         holder.btnTakeOrder.setOnClickListener(v -> {
             if (onTakeOrderClickListener != null) {
                 onTakeOrderClickListener.onTakeOrderClick(position, currentOrder);
+            }
+        });
+        // 取货按钮点击事件
+        holder.btnPickOrder.setOnClickListener(v -> {
+            if (onPickOrderClickListener != null) {
+                onPickOrderClickListener.onPickOrderClick(position, currentOrder);
+            }
+        });
+        // 送达按钮点击事件
+        holder.btnDoneOrder.setOnClickListener(v -> {
+            if (onDoneOrderClickListener != null) {
+                onDoneOrderClickListener.onDoneOrderClick(position, currentOrder);
             }
         });
     }
@@ -88,6 +133,24 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
         }
     }
 
+    public void updateOrderAccepted(String orderNo, boolean isAccepted) {
+        int position = getPositionByOderNo(orderNo);
+        if (position >= 0 && position < orderList.size()) {
+            Order updatedOrder = orderList.get(position);
+            updatedOrder.setAccepted(isAccepted);
+            notifyItemChanged(position);
+        }
+    }
+
+    public void updateOrderPicked(String orderNo, boolean isPicked) {
+        int position = getPositionByOderNo(orderNo);
+        if (position >= 0 && position < orderList.size()) {
+            Order updatedOrder = orderList.get(position);
+            updatedOrder.setPickup(isPicked);
+            notifyItemChanged(position);
+        }
+    }
+
     public static class OrderViewHolder extends RecyclerView.ViewHolder {
         // 订单控件
         TextView tvOrderId;
@@ -95,8 +158,12 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
         TextView tvOrderAmount;
         TextView tvOrderTime;
         TextView tvOrderPublisher;
+        TextView tvOrderFromAndTo;
         TextView tvOrderDistance;
+        TextView tvOrderStatus;
         Button btnTakeOrder;
+        Button btnPickOrder;
+        Button btnDoneOrder;
 
         public OrderViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -108,6 +175,10 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
             tvOrderPublisher = itemView.findViewById(R.id.tv_order_publisher);
             tvOrderDistance = itemView.findViewById(R.id.tv_order_distance);
             btnTakeOrder = itemView.findViewById(R.id.btn_take_order);
+            btnPickOrder = itemView.findViewById(R.id.btn_pick_order);
+            tvOrderStatus = itemView.findViewById(R.id.tv_order_status);
+            btnDoneOrder = itemView.findViewById(R.id.btn_done_order);
+            tvOrderFromAndTo = itemView.findViewById(R.id.tv_order_fromAndTo);
         }
 
 
@@ -122,6 +193,24 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
         void onTakeOrderClick(int position, Order order);
     }
 
+    public interface OnPickOrderClickListener {
+        /**
+         * 领单点击回调
+         * @param position 点击的订单位置
+         * @param order 点击的订单数据
+         */
+        void onPickOrderClick(int position, Order order);
+    }
+
+    public interface OnDoneOrderClickListener {
+        /**
+         * 订单完成点击回调
+         * @param position 点击的订单位置
+         * @param order 点击的订单数据
+         */
+        void onDoneOrderClick(int position, Order order);
+    }
+
     /**
      * 设置接单按钮点击事件
      */
@@ -129,8 +218,8 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
         this.onTakeOrderClickListener = listener;
     }
 
-    public void setTakeOrderBtnVisibility(boolean visible) {
-        takeOrderBtnVisible = visible;
+    public void setOnPickOrderClickListener(OnPickOrderClickListener listener) {
+        this.onPickOrderClickListener = listener;
     }
 
     public int getPositionByOderNo(String orderNo) {

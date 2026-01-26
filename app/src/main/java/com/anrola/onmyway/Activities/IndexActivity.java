@@ -1,5 +1,6 @@
 package com.anrola.onmyway.Activities;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,13 +14,22 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.amap.api.services.core.LatLonPoint;
+import com.anrola.onmyway.Entity.Order;
+import com.anrola.onmyway.Fragments.NavFragment;
+import com.anrola.onmyway.Fragments.OrderFragment;
 import com.anrola.onmyway.R;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.anrola.onmyway.Utils.DeliveryRouteDynamic;
 import com.anrola.onmyway.Utils.MyRequest;
+import com.anrola.onmyway.Utils.SharedPreferencesManager;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class IndexActivity extends AppCompatActivity {
 
@@ -48,64 +58,66 @@ public class IndexActivity extends AppCompatActivity {
 
 
         //入口
-        //Intent LoginIntent = new Intent(this, LoginActivity.class);
-        //startActivity(LoginIntent);
+        Intent LoginIntent = new Intent(this, LoginActivity.class);
+        startActivity(LoginIntent);
 
 
-        MainActivity mainActivity = new MainActivity();
         //测试入口
-        Intent MainIntent = new Intent(this, mainActivity.getClass());
-
-        startActivity(MainIntent);
+        //Intent MainIntent = new Intent(this, MainActivity.class);
+        //startActivity(MainIntent);
         //test();
     }
 
     // 测试函数
-    private void test(){
+    public void test(Context  context) {
+        List<Order> acceptedOrderList = new ArrayList<>();
         // 获取用户信息
         MyRequest myRequest = new MyRequest();
-        handler = new Handler(Looper.getMainLooper()){
+        handler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
 
-                if (msg.what == 1) {
-                    // 解析JSON
-                    JSONObject response = null;
+                if (msg.what == 0) {
                     try {
-                        response = new JSONObject((String) msg.obj);
+                        JSONArray jsonArray = new JSONArray(msg.obj.toString());
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject jsonObject = jsonArray.getJSONObject(i);
+                            Order order = new Order(
+                                    jsonObject.getString("no"),
+                                    jsonObject.getString("title"),
+                                    jsonObject.getString("receiverName"),
+                                    jsonObject.getString("receiverMobile"),
+                                    jsonObject.getString("receiverProvince"),
+                                    jsonObject.getString("receiverCity"),
+                                    jsonObject.getString("receiverDistrict"),
+                                    jsonObject.getString("receiverAddress"),
+                                    jsonObject.getJSONObject("startLocation"),
+                                    jsonObject.getJSONObject("endLocation"),
+                                    jsonObject.getInt("distance"),
+                                    jsonObject.getInt("amount"),
+                                    jsonObject.getString("startTime"),
+                                    jsonObject.getString("requireTime"),
+                                    jsonObject.getBoolean("isAccepted"),
+                                    jsonObject.getBoolean("isPickUp"),
+                                    jsonObject.getBoolean("isFinished")
+                            );
+                            acceptedOrderList.add(order);
+                        }
+
+
                     } catch (JSONException e) {
                         throw new RuntimeException(e);
                     }
-                    Log.d(TAG, response.toString());
-                }else if (msg.what == 0) {
-                    // 解析JSON
-                    JSONArray response = null;
-                    try {
-                        response = new JSONArray((String) msg.obj);
-                    } catch (JSONException e) {
-                        throw new RuntimeException(e);
-                    }
-                    Log.d(TAG, response.toString());
                 }
-
-
-
             }
-        };
-
-
-        myRequest.get("http://100.2.37.178:8080/user/all",handler,0);
-
-        JSONObject json = new JSONObject();
-        try {
-            json.put("name","test");
-            json.put("nickname","test");
-            json.put("email","123");
-            json.put("password","123");
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
         }
-        myRequest.post("http://100.2.37.178:8080/user/register",json,handler,1);
+        ;
+        SharedPreferencesManager sharedPreferencesManager = SharedPreferencesManager.getInstance(context);
+        String baseURL = myRequest.getBaseURL(context);
+        String url = baseURL + "/order/all/accepted?" + "orderBy=" + 0;
+        String key = "token";
+        String token = sharedPreferencesManager.get(key);
+        myRequest.get(url, handler, 0, token);
     }
 }

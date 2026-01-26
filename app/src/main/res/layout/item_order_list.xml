@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="#FFFFFF"
@@ -34,9 +35,19 @@
             android:id="@+id/tv_order_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="2026-01-09 10:30"
             android:textColor="#666666"
             android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tv_order_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:text="取单中"
+            android:textAlignment="viewEnd"
+            android:textStyle="bold" />
     </LinearLayout>
 
     <!-- 订单标题（核心内容） -->
@@ -61,12 +72,19 @@
 
         <TextView
             android:id="@+id/tv_order_publisher"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:text="发布人：小明同学"
             android:textColor="#666666"
-            android:textSize="12sp"/>
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tv_order_fromAndTo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            tools:text="地点 -> 地点" />
 
         <TextView
             android:id="@+id/tv_order_distance"
@@ -103,6 +121,24 @@
             android:text="立即接单"
             android:textColor="#FFFFFF"
             android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/btn_pick_order"
+            android:layout_width="80dp"
+            android:layout_height="40dp"
+            android:layout_weight="0"
+            android:backgroundTint="#2196F3"
+            android:text="已取单"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:id="@+id/btn_done_order"
+            android:layout_width="80dp"
+            android:layout_height="40dp"
+            android:layout_weight="0"
+            android:backgroundTint="#2196F3"
+            android:text="已送达"
+            android:textColor="#FFFFFF" />
     </LinearLayout>
 
 </LinearLayout>

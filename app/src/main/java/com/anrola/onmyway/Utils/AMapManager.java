@@ -5,6 +5,7 @@ import static androidx.core.content.ContextCompat.checkSelfPermission;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -16,21 +17,47 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.amap.api.maps.AMap;
+import com.amap.api.maps.CameraUpdateFactory;
 import com.amap.api.maps.MapView;
 import com.amap.api.maps.MapsInitializer;
+import com.amap.api.maps.model.LatLng;
+import com.amap.api.maps.model.LatLngBounds;
+import com.amap.api.maps.model.Marker;
+import com.amap.api.maps.model.MarkerOptions;
 import com.amap.api.maps.model.MyLocationStyle;
 
 import android.Manifest;
 
+import com.amap.api.maps.model.Polyline;
+import com.amap.api.maps.model.PolylineOptions;
+import com.amap.api.services.core.AMapException;
+import com.amap.api.services.core.LatLonPoint;
+import com.amap.api.services.route.BusRouteResult;
+import com.amap.api.services.route.BusRouteResultV2;
+import com.amap.api.services.route.DrivePath;
+import com.amap.api.services.route.DrivePathV2;
+import com.amap.api.services.route.DriveRouteResult;
+import com.amap.api.services.route.DriveRouteResultV2;
+import com.amap.api.services.route.DriveStep;
+import com.amap.api.services.route.DriveStepV2;
+import com.amap.api.services.route.RideRouteResult;
+import com.amap.api.services.route.RideRouteResultV2;
+import com.amap.api.services.route.RouteSearch;
+import com.amap.api.services.route.RouteSearchV2;
+import com.amap.api.services.route.WalkPath;
+import com.amap.api.services.route.WalkRouteResult;
+import com.amap.api.services.route.WalkRouteResultV2;
 import com.anrola.onmyway.R;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class AMapManager {
     private Context context;
     private MapView mapView;
     private AMap aMap;
     private static final String TAG = AMapManager.class.getSimpleName();
+
 
     // 权限请求码，用于回调中识别
     private static final int REQUEST_LOCATION_PERMISSION = 1001;
@@ -106,7 +133,7 @@ public class AMapManager {
     public void doLocation() {
         MyLocationStyle myLocationStyle;
         myLocationStyle = new MyLocationStyle();//初始化定位蓝点样式类myLocationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE);//连续定位、且将视角移动到地图中心点，定位点依照设备方向旋转，并且会跟随设备移动。（1秒1次定位）如果不设置myLocationType，默认也会执行此种模式。
-        myLocationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE);
+        myLocationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER);
         myLocationStyle.interval(2000); //设置连续定位模式下的定位间隔，只在连续定位模式下生效，单次定位模式下不会生效。单位为毫秒。
 
         aMap.setMyLocationStyle(myLocationStyle);//设置定位蓝点的Style
@@ -121,5 +148,136 @@ public class AMapManager {
     public interface onLocationPermissionGrantedListener {
         void onLocationPermissionGranted();
     }
+    public void addMarker(LatLng latLng, String title) {
+        if (title.isEmpty()){
+            title = "marker";
+        }
+        aMap.addMarker(new MarkerOptions().position(latLng).title(title));
+    }
+    public void addMarker(LatLonPoint latLng, String title) {
+        if (title.isEmpty()){
+            title = "marker";
+        }
+        aMap.addMarker(new MarkerOptions().position(new LatLng(latLng.getLatitude(), latLng.getLongitude())).title(title));
+    }
+
+
+    public void addPolyline(LatLng start, LatLng end) {
+        aMap.addPolyline(new PolylineOptions().add(start, end).width(10).color(Color.RED));
+    }
+
+    public void addPolyline(LatLonPoint startP, LatLonPoint endP) {
+        LatLng start = new LatLng(startP.getLatitude(), startP.getLongitude());
+        LatLng end = new LatLng(endP.getLatitude(), endP.getLongitude());
+        aMap.addPolyline(new PolylineOptions().add(start, end).width(10).color(Color.RED));
+    }
+
+    public void addPolyline(List<LatLonPoint> points) {
+        for (int i = 0; i < points.size() - 1; i++){
+            LatLng start = new LatLng(points.get(i).getLatitude(), points.get(i).getLongitude());
+            LatLng end = new LatLng(points.get(i + 1).getLatitude(), points.get(i + 1).getLongitude());
+            aMap.addPolyline(new PolylineOptions().add(start, end).width(10).color(Color.RED));
+        }
+    }
+
+    private void getRoute(LatLng start, LatLng end,RouteSearch.OnRouteSearchListener onRouteSearchListener) {
+        try {
+            RouteSearch routeSearch = new RouteSearch(context);
+            routeSearch.setRouteSearchListener(onRouteSearchListener);
+            RouteSearch.FromAndTo fromAndTo = new RouteSearch.FromAndTo(
+                    new LatLonPoint(start.latitude, start.longitude),
+                    new LatLonPoint(end.latitude, end.longitude)
+            );
+            Log.i(TAG, String.format("开始规划路径：%s -> %s", start, end));
+            RouteSearch.DriveRouteQuery query = new RouteSearch.DriveRouteQuery(fromAndTo, RouteSearch.DRIVING_SINGLE_DEFAULT, null, null, "");
+            routeSearch.calculateDriveRouteAsyn(query);
+        } catch (AMapException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public void addRoute(LatLng startPoint, LatLng endPoint, Integer color , Integer width) {
+        RouteSearch.OnRouteSearchListener onRouteSearchListener = new RouteSearch.OnRouteSearchListener() {
+            @Override
+            public void onBusRouteSearched(BusRouteResult busRouteResult, int i) {
+
+            }
+
+            @Override
+            public void onDriveRouteSearched(DriveRouteResult driveRouteResult, int i) {
+                if (i == 1000){
+                    Log.i(TAG, "驾车路径规划成功");
+
+                    DrivePath drivePath = driveRouteResult.getPaths().get(0);
+                    if (drivePath == null) {
+                        return;
+                    }
+
+                    DrivingRouteOverlay driveRouteOverlay = new DrivingRouteOverlay(
+                            context, aMap, drivePath, null);
+
+                    if (width != null){
+                        driveRouteOverlay.setRouteWidth(width);
+                    }else {
+                        driveRouteOverlay.setRouteWidth(7);
+                    }
+
+                    if (color != null){
+                        driveRouteOverlay.setIsColorfulline(true);
+                        driveRouteOverlay.addToMap(color);
+                    }else {
+                        driveRouteOverlay.addToMap();
+                    }
+
+                    int dis = (int) drivePath.getDistance();
+                    int dur = (int) drivePath.getDuration();
+                    String des = MapUtil.getFriendlyTime(dur) + "(" + MapUtil.getFriendlyLength(dis) + ")";
+                    Log.d(TAG, des);
+                }else{
+                    Log.e(TAG, "驾车路径规划失败,错误码："+ i);
+                }
+            }
+
+            @Override
+            public void onWalkRouteSearched(WalkRouteResult walkRouteResult, int i) {
+
+            }
+
+            @Override
+            public void onRideRouteSearched(RideRouteResult rideRouteResult, int i) {
+
+            }
+        };
+        getRoute(startPoint, endPoint, onRouteSearchListener);
+    }
+    public void addRoute(LatLonPoint startPoint, LatLonPoint endPoint, Integer color , Integer width) {
+        LatLng start = new LatLng(startPoint.getLatitude(), startPoint.getLongitude());
+        LatLng end = new LatLng(endPoint.getLatitude(), endPoint.getLongitude());
+        addRoute(start, end, color, width);
+    }
+    public void moveCamera(LatLng latLng) {
+        aMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+    }
+
+    public void moveCamera(LatLonPoint latLonPoint) {
+        aMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(latLonPoint.getLatitude(), latLonPoint.getLongitude())));
+    }
+
+    public void moveCamera(LatLng latLng, int  zoom) {
+        aMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
+    }
+
+    public void moveCamera(LatLonPoint latLonPoint, int  zoom) {
+        moveCamera(new LatLng(latLonPoint.getLatitude(), latLonPoint.getLongitude()), zoom);
+    }
+
+    public void clear() {
+        aMap.clear();
+    }
+    public AMap getAMap() {
+        return aMap;
+    }
+
 
 }

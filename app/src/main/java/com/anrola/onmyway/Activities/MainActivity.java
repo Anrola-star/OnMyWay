@@ -177,4 +177,8 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         handler.removeCallbacksAndMessages(null);   // 页面销毁时移除Handler回调
     }
+
+    public Fragment getNavFragment() {
+        return navFragment;
+    }
 }

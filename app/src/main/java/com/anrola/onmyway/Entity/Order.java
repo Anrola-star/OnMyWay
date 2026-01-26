@@ -1,5 +1,7 @@
 package com.anrola.onmyway.Entity;
 
+import org.json.JSONObject;
+
 import java.io.Serializable;
 
 public class Order implements Serializable {
@@ -11,22 +13,25 @@ public class Order implements Serializable {
     private String receiverCity;
     private String receiverDistrict;
     private String receiverAddress;
-    private String startLocation;
-    private String endLocation;
+    private JSONObject startLocation;
+    private JSONObject endLocation;
     private int distance;
     private int amount;
     private String startTime;
     private String requireTime;
-    private String status;
+    private boolean isAccepted;
+    private boolean isPickUp;
+    private boolean isFinished;
 
     public Order() {}
+
     public Order(String no, String title,
-                 String receiverName,
-                 String receiverMobile, String receiverProvince, String receiverCity, String receiverDistrict, String receiverAddress,
-                 String startLocation, String endLocation,
+                 String receiverName, String receiverMobile,
+                 String receiverProvince, String receiverCity, String receiverDistrict, String receiverAddress,
+                 JSONObject startLocation, JSONObject endLocation,
                  int distance, int amount,
                  String startTime, String requireTime,
-                 String status) {
+                 boolean isAccepted, boolean isPickup, boolean isFinished) {
         this.no = no;
         this.title = title;
         this.receiverName = receiverName;
@@ -41,7 +46,29 @@ public class Order implements Serializable {
         this.amount = amount;
         this.startTime = startTime;
         this.requireTime = requireTime;
-        this.status = status;
+        this.isAccepted = isAccepted;
+        this.isPickUp = isPickup;
+        this.isFinished = isFinished;
+    }
+
+    public Order(Order  order){
+        this.no = order.no;
+        this.title = order.title;
+        this.receiverName = order.receiverName;
+        this.receiverMobile = order.receiverMobile;
+        this.receiverProvince = order.receiverProvince;
+        this.receiverCity = order.receiverCity;
+        this.receiverDistrict = order.receiverDistrict;
+        this.receiverAddress = order.receiverAddress;
+        this.startLocation = order.startLocation;
+        this.endLocation = order.endLocation;
+        this.distance = order.distance;
+        this.amount = order.amount;
+        this.startTime = order.startTime;
+        this.requireTime = order.requireTime;
+        this.isAccepted = order.isAccepted;
+        this.isPickUp = order.isPickUp;
+        this.isFinished = order.isFinished;
     }
 
     public String getNo() {
@@ -108,19 +135,19 @@ public class Order implements Serializable {
         this.receiverAddress = receiverAddress;
     }
 
-    public String getStartLocation() {
+    public JSONObject getStartLocation() {
         return startLocation;
     }
 
-    public void setStartLocation(String startLocation) {
+    public void setStartLocation(JSONObject startLocation) {
         this.startLocation = startLocation;
     }
 
-    public String getEndLocation() {
+    public JSONObject getEndLocation() {
         return endLocation;
     }
 
-    public void setEndLocation(String endLocation) {
+    public void setEndLocation(JSONObject endLocation) {
         this.endLocation = endLocation;
     }
 
@@ -156,11 +183,27 @@ public class Order implements Serializable {
         this.requireTime = requireTime;
     }
 
-    public String getStatus() {
-        return status;
+    public boolean isAccepted() {
+        return isAccepted;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setAccepted(boolean isAccepted) {
+        this.isAccepted = isAccepted;
+    }
+
+    public boolean isPickup() {
+        return isPickUp;
+    }
+
+    public void setPickup(boolean isPickup) {
+        this.isPickUp = isPickup;
+    }
+
+    public boolean isFinished() {
+        return isFinished;
+    }
+
+    public void setFinished(boolean isFinished) {
+        this.isFinished = isFinished;
     }
 }
