@@ -75,7 +75,7 @@ public class AMapManager {
         MapsInitializer.updatePrivacyAgree(context, true);
     }
 
-    public void requestMapPermissions(onLocationPermissionGrantedListener  onLocationPermissionGrantedListener) {
+    public void requestMapPermissions(onLocationPermissionGrantedListener onLocationPermissionGrantedListener) {
         String[] sList = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
         ActivityCompat.requestPermissions((Activity) context, sList, REQUEST_LOCATION_PERMISSION);
 
@@ -95,7 +95,7 @@ public class AMapManager {
         }
     }
 
-    public void CreateMap(onMapLoadFinishedListener  onMapLoadFinishedListener) {
+    public void CreateMap(onMapLoadFinishedListener onMapLoadFinishedListener) {
         mapView.onCreate(null);
         aMap = mapView.getMap();
         if (aMap == null) {
@@ -119,7 +119,7 @@ public class AMapManager {
         });
     }
 
-    private void loadFailedAndRetry(onMapLoadFinishedListener  onMapLoadFinishedListener) {
+    private void loadFailedAndRetry(onMapLoadFinishedListener onMapLoadFinishedListener) {
         Log.i(TAG, "开始重新加载地图");
         // 重置MapView状态（关键：先销毁再重新初始化，避免状态残留）
         if (mapView != null) {
@@ -137,7 +137,7 @@ public class AMapManager {
         myLocationStyle.interval(2000); //设置连续定位模式下的定位间隔，只在连续定位模式下生效，单次定位模式下不会生效。单位为毫秒。
 
         aMap.setMyLocationStyle(myLocationStyle);//设置定位蓝点的Style
-        aMap.getUiSettings().setMyLocationButtonEnabled(true);
+        aMap.getUiSettings().setMyLocationButtonEnabled(false);// 设置默认定位按钮是否显示，非必需设置。
         aMap.setMyLocationEnabled(true);// 设置为true表示启动显示定位蓝点，false表示隐藏定位蓝点并不进行定位，默认是false。
     }
 
@@ -148,14 +148,16 @@ public class AMapManager {
     public interface onLocationPermissionGrantedListener {
         void onLocationPermissionGranted();
     }
+
     public void addMarker(LatLng latLng, String title) {
-        if (title.isEmpty()){
+        if (title.isEmpty()) {
             title = "marker";
         }
         aMap.addMarker(new MarkerOptions().position(latLng).title(title));
     }
+
     public void addMarker(LatLonPoint latLng, String title) {
-        if (title.isEmpty()){
+        if (title.isEmpty()) {
             title = "marker";
         }
         aMap.addMarker(new MarkerOptions().position(new LatLng(latLng.getLatitude(), latLng.getLongitude())).title(title));
@@ -173,14 +175,14 @@ public class AMapManager {
     }
 
     public void addPolyline(List<LatLonPoint> points) {
-        for (int i = 0; i < points.size() - 1; i++){
+        for (int i = 0; i < points.size() - 1; i++) {
             LatLng start = new LatLng(points.get(i).getLatitude(), points.get(i).getLongitude());
             LatLng end = new LatLng(points.get(i + 1).getLatitude(), points.get(i + 1).getLongitude());
             aMap.addPolyline(new PolylineOptions().add(start, end).width(10).color(Color.RED));
         }
     }
 
-    private void getRoute(LatLng start, LatLng end,RouteSearch.OnRouteSearchListener onRouteSearchListener) {
+    private void getRoute(LatLng start, LatLng end, RouteSearch.OnRouteSearchListener onRouteSearchListener) {
         try {
             RouteSearch routeSearch = new RouteSearch(context);
             routeSearch.setRouteSearchListener(onRouteSearchListener);
@@ -197,7 +199,7 @@ public class AMapManager {
     }
 
 
-    public void addRoute(LatLng startPoint, LatLng endPoint, Integer color , Integer width) {
+    public void addRoute(LatLng startPoint, LatLng endPoint, Integer color, Integer width) {
         RouteSearch.OnRouteSearchListener onRouteSearchListener = new RouteSearch.OnRouteSearchListener() {
             @Override
             public void onBusRouteSearched(BusRouteResult busRouteResult, int i) {
@@ -206,7 +208,7 @@ public class AMapManager {
 
             @Override
             public void onDriveRouteSearched(DriveRouteResult driveRouteResult, int i) {
-                if (i == 1000){
+                if (i == 1000) {
                     Log.i(TAG, "驾车路径规划成功");
 
                     DrivePath drivePath = driveRouteResult.getPaths().get(0);
@@ -217,16 +219,16 @@ public class AMapManager {
                     DrivingRouteOverlay driveRouteOverlay = new DrivingRouteOverlay(
                             context, aMap, drivePath, null);
 
-                    if (width != null){
+                    if (width != null) {
                         driveRouteOverlay.setRouteWidth(width);
-                    }else {
+                    } else {
                         driveRouteOverlay.setRouteWidth(7);
                     }
 
-                    if (color != null){
+                    if (color != null) {
                         driveRouteOverlay.setIsColorfulline(true);
                         driveRouteOverlay.addToMap(color);
-                    }else {
+                    } else {
                         driveRouteOverlay.addToMap();
                     }
 
@@ -234,8 +236,8 @@ public class AMapManager {
                     int dur = (int) drivePath.getDuration();
                     String des = MapUtil.getFriendlyTime(dur) + "(" + MapUtil.getFriendlyLength(dis) + ")";
                     Log.d(TAG, des);
-                }else{
-                    Log.e(TAG, "驾车路径规划失败,错误码："+ i);
+                } else {
+                    Log.e(TAG, "驾车路径规划失败,错误码：" + i);
                 }
             }
 
@@ -251,11 +253,74 @@ public class AMapManager {
         };
         getRoute(startPoint, endPoint, onRouteSearchListener);
     }
-    public void addRoute(LatLonPoint startPoint, LatLonPoint endPoint, Integer color , Integer width) {
+
+    public void addRoute(LatLng startPoint, LatLng endPoint, Integer color, Integer width, RouteSearch.OnRouteSearchListener onRouteSearchListener) {
+        getRoute(startPoint, endPoint, new RouteSearch.OnRouteSearchListener() {
+            @Override
+            public void onBusRouteSearched(BusRouteResult busRouteResult, int i) {
+                onRouteSearchListener.onBusRouteSearched(busRouteResult, i);
+            }
+
+            @Override
+            public void onDriveRouteSearched(DriveRouteResult driveRouteResult, int i) {
+                onRouteSearchListener.onDriveRouteSearched(driveRouteResult, i);
+                if (i == 1000) {
+                    Log.i(TAG, "驾车路径规划成功");
+
+                    DrivePath drivePath = driveRouteResult.getPaths().get(0);
+                    if (drivePath == null) {
+                        return;
+                    }
+
+                    DrivingRouteOverlay driveRouteOverlay = new DrivingRouteOverlay(
+                            context, aMap, drivePath, null);
+
+                    if (width != null) {
+                        driveRouteOverlay.setRouteWidth(width);
+                    } else {
+                        driveRouteOverlay.setRouteWidth(7);
+                    }
+
+                    if (color != null) {
+                        driveRouteOverlay.setIsColorfulline(true);
+                        driveRouteOverlay.addToMap(color);
+                    } else {
+                        driveRouteOverlay.addToMap();
+                    }
+
+                    int dis = (int) drivePath.getDistance();
+                    int dur = (int) drivePath.getDuration();
+                    String des = MapUtil.getFriendlyTime(dur) + "(" + MapUtil.getFriendlyLength(dis) + ")";
+                    Log.d(TAG, des);
+                } else {
+                    Log.e(TAG, "驾车路径规划失败,错误码：" + i);
+                }
+            }
+
+            @Override
+            public void onWalkRouteSearched(WalkRouteResult walkRouteResult, int i) {
+                onRouteSearchListener.onWalkRouteSearched(walkRouteResult, i);
+            }
+
+            @Override
+            public void onRideRouteSearched(RideRouteResult rideRouteResult, int i) {
+                onRouteSearchListener.onRideRouteSearched(rideRouteResult, i);
+            }
+        });
+    }
+
+    public void addRoute(LatLonPoint startPoint, LatLonPoint endPoint, Integer color, Integer width) {
         LatLng start = new LatLng(startPoint.getLatitude(), startPoint.getLongitude());
         LatLng end = new LatLng(endPoint.getLatitude(), endPoint.getLongitude());
         addRoute(start, end, color, width);
     }
+
+    public void addRoute(LatLonPoint startPoint, LatLonPoint endPoint, Integer color, Integer width, RouteSearch.OnRouteSearchListener onRouteSearchListener) {
+        LatLng start = new LatLng(startPoint.getLatitude(), startPoint.getLongitude());
+        LatLng end = new LatLng(endPoint.getLatitude(), endPoint.getLongitude());
+        addRoute(start, end, color, width, onRouteSearchListener);
+    }
+
     public void moveCamera(LatLng latLng) {
         aMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
     }
@@ -264,17 +329,18 @@ public class AMapManager {
         aMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(latLonPoint.getLatitude(), latLonPoint.getLongitude())));
     }
 
-    public void moveCamera(LatLng latLng, int  zoom) {
+    public void moveCamera(LatLng latLng, int zoom) {
         aMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
     }
 
-    public void moveCamera(LatLonPoint latLonPoint, int  zoom) {
+    public void moveCamera(LatLonPoint latLonPoint, int zoom) {
         moveCamera(new LatLng(latLonPoint.getLatitude(), latLonPoint.getLongitude()), zoom);
     }
 
     public void clear() {
         aMap.clear();
     }
+
     public AMap getAMap() {
         return aMap;
     }

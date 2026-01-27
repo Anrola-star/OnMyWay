@@ -8,6 +8,66 @@
     android:layout_height="match_parent"
     android:background="#F5F5F5">
 
+    <androidx.cardview.widget.CardView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="70dp"
+        app:cardBackgroundColor="@color/white"
+        app:cardCornerRadius="90dp"
+        app:cardElevation="3dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <Button
+            android:id="@+id/btn_my_location"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/ic_my_location"
+            android:backgroundTint="#313131" />
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cv_float_tips"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        app:cardCornerRadius="5dp"
+        app:cardElevation="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <Button
+            android:id="@+id/btn_right"
+            android:layout_width="40dp"
+            android:layout_height="45dp"
+            android:layout_gravity="center_vertical"
+            android:background="@drawable/ic_arrow_right"
+            android:backgroundTint="@color/black"
+            android:rotationY="180"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tv_float_text"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textAlignment="center"
+            android:textSize="16sp"
+            tools:text="正在前往 酸菜鱼 取单 \n 500米" />
+
+        <Button
+            android:id="@+id/btn_close_float"
+            android:layout_width="40dp"
+            android:layout_height="45dp"
+            android:layout_gravity="center_vertical|end"
+            android:background="@drawable/ic_arrow_right"
+            android:backgroundTint="@color/gray" />
+
+    </androidx.cardview.widget.CardView>
+
     <FrameLayout
         android:id="@+id/fl_map_container"
         android:layout_width="0dp"
@@ -22,7 +82,8 @@
         <com.amap.api.maps.MapView
             android:id="@+id/fn_map"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent"
+            android:elevation="3dp" />
     </FrameLayout>
 
     <!-- 底部功能栏：接单核心操作（抢单/我的订单/设置） -->
