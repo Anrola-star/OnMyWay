@@ -24,7 +24,7 @@ android {
 
     defaultConfig {
         applicationId = "com.anrola.onmyway"
-        minSdk = 21
+        minSdk = 23
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"

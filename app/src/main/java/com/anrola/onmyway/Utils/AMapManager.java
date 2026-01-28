@@ -4,12 +4,15 @@ import static androidx.core.content.ContextCompat.checkSelfPermission;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 
@@ -27,6 +30,7 @@ import com.amap.api.maps.model.MarkerOptions;
 import com.amap.api.maps.model.MyLocationStyle;
 
 import android.Manifest;
+import android.widget.Toast;
 
 import com.amap.api.maps.model.Polyline;
 import com.amap.api.maps.model.PolylineOptions;
@@ -56,8 +60,27 @@ public class AMapManager {
     private Context context;
     private MapView mapView;
     private AMap aMap;
-    private static final String TAG = AMapManager.class.getSimpleName();
+    public static class RouteSearchStrategy{
+        private final int Fastest = RouteSearch.DRIVING_SINGLE_DEFAULT;
+        private final int Shortest = RouteSearch.DRIVING_SINGLE_SHORTEST;
+        private final int Default = RouteSearch.DRIVING_MULTI_STRATEGY_FASTEST_SHORTEST_AVOID_CONGESTION;
+        private int NowStrategy = Default;
 
+        public void setFastestStrategy(){
+            NowStrategy = Fastest;
+        }
+        public void setShortestStrategy(){
+            NowStrategy = Shortest;
+        }
+        public void setDefaultStrategy(){
+            NowStrategy = Default;
+        }
+        public int getStrategy(){
+            return NowStrategy;
+        }
+    }
+    private RouteSearchStrategy routeSearchStrategy = new RouteSearchStrategy();
+    private static final String TAG = AMapManager.class.getSimpleName();
 
     // 权限请求码，用于回调中识别
     private static final int REQUEST_LOCATION_PERMISSION = 1001;
@@ -92,6 +115,41 @@ public class AMapManager {
                     requestMapPermissions(onLocationPermissionGrantedListener);
                 }
             }, 500);
+        }
+    }
+
+    public void openLocationSetting(Context context) {
+        try {
+            // 核心Intent：跳转到系统定位服务设置专属页面
+            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            // 检查是否有应用能处理该Intent（避免极少数系统异常）
+            if (intent.resolveActivity(context.getPackageManager()) != null) {
+                context.startActivity(intent);
+            } else {
+                Toast.makeText(context, "无法打开定位设置", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "openLocationSetting: " + e);
+            Toast.makeText(context, "打开定位设置失败", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public static boolean isLocationServiceOpened(Context context) {
+        try {
+            // 获取系统定位服务管理器
+            LocationManager locationManager = (LocationManager)
+                    context.getSystemService(Context.LOCATION_SERVICE);
+
+            // 检查GPS定位是否开启
+            boolean isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+            // 检查网络定位是否开启
+            boolean isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+            // 两者满足其一，即定位服务已开启
+            return isGpsEnabled || isNetworkEnabled;
+        } catch (Exception e) {
+            Log.e(TAG, "isLocationServiceOpened: " + e);
+            return false;
         }
     }
 
@@ -182,7 +240,7 @@ public class AMapManager {
         }
     }
 
-    private void getRoute(LatLng start, LatLng end, RouteSearch.OnRouteSearchListener onRouteSearchListener) {
+    public void getRoute(LatLng start, LatLng end, RouteSearch.OnRouteSearchListener onRouteSearchListener) {
         try {
             RouteSearch routeSearch = new RouteSearch(context);
             routeSearch.setRouteSearchListener(onRouteSearchListener);
@@ -191,7 +249,7 @@ public class AMapManager {
                     new LatLonPoint(end.latitude, end.longitude)
             );
             Log.i(TAG, String.format("开始规划路径：%s -> %s", start, end));
-            RouteSearch.DriveRouteQuery query = new RouteSearch.DriveRouteQuery(fromAndTo, RouteSearch.DRIVING_SINGLE_DEFAULT, null, null, "");
+            RouteSearch.DriveRouteQuery query = new RouteSearch.DriveRouteQuery(fromAndTo, routeSearchStrategy.getStrategy(), null, null, "");
             routeSearch.calculateDriveRouteAsyn(query);
         } catch (AMapException e) {
             throw new RuntimeException(e);
@@ -335,6 +393,10 @@ public class AMapManager {
 
     public void moveCamera(LatLonPoint latLonPoint, int zoom) {
         moveCamera(new LatLng(latLonPoint.getLatitude(), latLonPoint.getLongitude()), zoom);
+    }
+
+    public RouteSearchStrategy getRouteSearchStrategy() {
+        return routeSearchStrategy;
     }
 
     public void clear() {

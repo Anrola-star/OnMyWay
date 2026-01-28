@@ -1,5 +1,7 @@
 package com.anrola.onmyway.Utils;
 
+import static com.anrola.onmyway.Value.GlobalConstants.REQUEST_TIMEOUT;
+
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
@@ -20,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 
 public class MyRequest {
     private static final String TAG = "MYLOG_MyRequest";
+    private Context context;
     private InputStream inputStream = null;
     private BufferedReader reader = null;
 
@@ -37,7 +40,6 @@ public class MyRequest {
     public HttpURLConnection getConnection(String urlString, Method method, Boolean isUseJson) {
         HttpURLConnection connection = null;
 
-
         URL url = null;
         try {
             url = new URL(urlString);
@@ -45,8 +47,8 @@ public class MyRequest {
 
             // 设置请求参数
             connection.setRequestMethod(method.toString());
-            connection.setConnectTimeout(5000);
-            connection.setReadTimeout(5000);
+            connection.setConnectTimeout(REQUEST_TIMEOUT);
+            connection.setReadTimeout(REQUEST_TIMEOUT);
 
             if (isUseJson) {
                 connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
@@ -73,8 +75,8 @@ public class MyRequest {
             // 设置请求参数
             connection.setRequestMethod(method.toString());
             connection.setRequestProperty("Authorization", "Bearer " + token);
-            connection.setConnectTimeout(5000);
-            connection.setReadTimeout(5000);
+            connection.setConnectTimeout(REQUEST_TIMEOUT);
+            connection.setReadTimeout(REQUEST_TIMEOUT);
             if (isUseJson) {
                 connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
                 connection.setDoOutput(true);

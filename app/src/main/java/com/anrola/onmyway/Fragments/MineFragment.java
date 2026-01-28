@@ -94,6 +94,7 @@ public class MineFragment extends Fragment {
     private Handler handler;
     private final MyRequest myRequest = new MyRequest();
     private boolean isWeekData = true; // 当前显示本周/本月数据
+    private boolean isMonthDataGetted = false;
     private final String TAG = "MineFragment";
 
 
@@ -111,7 +112,7 @@ public class MineFragment extends Fragment {
         // 初始化图表
         initChart();
         // 请求图表数据
-        requestChartData();
+        requestChartData(true);
         // 请求用户数据
         requestUserData();
         // 设置点击事件
@@ -203,6 +204,7 @@ public class MineFragment extends Fragment {
                                 }
                                 Log.d(TAG, ChartData.entriesWeek.toString());
                                 ViewHolder.tvMonthIncome.setText(String.format("¥%s", ChartData.monthTotalIncome));
+                                isMonthDataGetted = true;
                             } else if (response.getInt("code") == 500) {
                                 Toast.makeText(getActivity(), "收入获取错误", Toast.LENGTH_SHORT).show();
                             }
@@ -281,8 +283,26 @@ public class MineFragment extends Fragment {
                 loadChartData(isWeekData, ChartData.entriesWeek, ChartData.xWeekLabels);
             }
         });
+
         ViewHolder.tvMonth.setOnClickListener(v -> {
             if (isWeekData) {
+
+                if (!isMonthDataGetted){
+                    requestChartData(false);
+                    new Thread(() -> {
+                        while (!isMonthDataGetted){
+                            try {
+                                Thread.sleep(500);
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                        isWeekData = false;
+                        updateTabStyle();
+                        loadChartData(isWeekData, ChartData.entriesMonth, ChartData.xMonthLabels);
+                    }).start();
+                }
+
                 isWeekData = false;
                 updateTabStyle();
                 loadChartData(isWeekData, ChartData.entriesMonth, ChartData.xMonthLabels);
@@ -340,20 +360,23 @@ public class MineFragment extends Fragment {
         ViewHolder.incomeChart.setClickable(false);
     }
 
-    private void requestChartData() {
-        String key = getString(R.string.shared_preferences_token_key);
-        String weekUrl = myRequest.getBaseURL(context) + "/income/getWeekDailyIncomeByUserId";
-        String monthUrl = myRequest.getBaseURL(context) + "/income/getMonthDailyIncomeByUserId";
-        String token = sharedPreferencesManager.get(key);
+    private void requestChartData(boolean isWeekData) {
         // 获取本周/本月收益数据
-        myRequest.get(weekUrl,
-                handler,
-                HandlerWhats.getWeekIncomeHandlerWhat,
-                token);
-        myRequest.get(monthUrl,
-                handler,
-                HandlerWhats.getMonthIncomeHandlerWhat,
-                token);
+        String key = getString(R.string.shared_preferences_token_key);
+        String token = sharedPreferencesManager.get(key);
+        if (isWeekData){
+            String weekUrl = myRequest.getBaseURL(context) + "/income/getWeekDailyIncomeByUserId";
+            myRequest.get(weekUrl,
+                    handler,
+                    HandlerWhats.getWeekIncomeHandlerWhat,
+                    token);
+        }else {
+            String monthUrl = myRequest.getBaseURL(context) + "/income/getMonthDailyIncomeByUserId";
+            myRequest.get(monthUrl,
+                    handler,
+                    HandlerWhats.getMonthIncomeHandlerWhat,
+                    token);
+        }
     }
 
     private void requestUserData() {

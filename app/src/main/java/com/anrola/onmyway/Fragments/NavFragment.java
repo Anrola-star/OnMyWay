@@ -1,45 +1,57 @@
 package com.anrola.onmyway.Fragments;
 
+import static com.anrola.onmyway.Value.GlobalConstants.DELIVERY_PLAN_THREAD_WAITING_SLEEP_TIME;
+import static com.anrola.onmyway.Value.GlobalConstants.DRAW_NEXT_ORDER_ROUTE_THREAD_NO_ACTION_SLEEP_TIME;
+import static com.anrola.onmyway.Value.GlobalConstants.DRAW_NEXT_ORDER_ROUTE_THREAD_SLEEP_TIME;
+import static com.anrola.onmyway.Value.GlobalConstants.DRAW_ORDER_ROUTE_THREAD_SLEEP_TIME;
+import static com.anrola.onmyway.Value.GlobalConstants.MAP_ZOOM_IN_LOCATION;
+import static com.anrola.onmyway.Value.GlobalConstants.UPDATE_LOCATION_THREAD_SLEEP_TIME;
+import static com.anrola.onmyway.Value.GlobalConstants.WAITING_ORDER_THREAD_SLEEP_TIME;
+
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
+import android.location.LocationManager;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 
+import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
-import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
-import android.view.animation.DecelerateInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.amap.api.maps.model.LatLng;
 import com.amap.api.services.core.LatLonPoint;
 import com.amap.api.services.route.BusRouteResult;
+import com.amap.api.services.route.DrivePath;
 import com.amap.api.services.route.DriveRouteResult;
 import com.amap.api.services.route.RideRouteResult;
 import com.amap.api.services.route.RouteSearch;
 import com.amap.api.services.route.WalkRouteResult;
+import com.anrola.onmyway.Activities.MainActivity;
 import com.anrola.onmyway.Entity.Order;
 import com.anrola.onmyway.R;
 import com.amap.api.maps.*;
 import com.anrola.onmyway.Utils.AMapManager;
 import com.anrola.onmyway.Utils.DeliveryRouteDynamic;
+import com.anrola.onmyway.Utils.DrivingRouteOverlay;
+import com.anrola.onmyway.Utils.MapUtil;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 
 public class NavFragment extends Fragment {
@@ -48,21 +60,23 @@ public class NavFragment extends Fragment {
     private static final String TAG = "NavFragment";
     private AMapManager amapManager;
     private List<Order> acceptedOrders = new ArrayList<>();
+    private DrivingRouteOverlay nextRouteOverlay;
 
     private static class Value {
         public static LatLng currentLatLng = new LatLng(0, 0);
         public static Boolean isStartLocation = false;
         public static Boolean isShowFloatTips = true;
-    }
 
+
+    }
 
     private static class ViewHolder {
         private static MapView mapView;
         private static TextView tvSettings;
+        private static TextView tvMyOrders;
         private static Button btnFloat;
         private static Button btnMyLocation;
         private static Button btnRight;
-
         private static TextView tvFloatText;
         private static CardView cvFloatTips;
     }
@@ -130,6 +144,7 @@ public class NavFragment extends Fragment {
     private void intiView(View view) {
         context = view.getContext();
         ViewHolder.tvSettings = view.findViewById(R.id.tv_setting);
+        ViewHolder.tvMyOrders = view.findViewById(R.id.tv_my_orders);
         ViewHolder.btnFloat = view.findViewById(R.id.btn_close_float);
         ViewHolder.btnRight = view.findViewById(R.id.btn_right);
         ViewHolder.tvFloatText = view.findViewById(R.id.tv_float_text);
@@ -152,6 +167,11 @@ public class NavFragment extends Fragment {
         amapManager.requestMapPermissions(new AMapManager.onLocationPermissionGrantedListener() {
             @Override
             public void onLocationPermissionGranted() {
+                if (!AMapManager.isLocationServiceOpened(context)) {
+                    // 弹出打开定位服务界面
+                    Toast.makeText(context, "请打开定位服务", Toast.LENGTH_SHORT).show();
+                    amapManager.openLocationSetting(context);
+                }
                 amapManager.doLocation();
                 startUpdateLocation();
             }
@@ -164,11 +184,13 @@ public class NavFragment extends Fragment {
             public void onClick(View v) {
                 //TODO
                 // 弹出设置界面
-                // 暂时用于测试
-                Threads.doDeliveryPlanThread.interrupt();
-                Threads.drawOrderRouteThread.interrupt();
-                Threads.drawNextOrderRouteThread.interrupt();
-                startDeliveryPlan();
+
+
+            }
+        });
+        ViewHolder.tvMyOrders.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
             }
         });
 
@@ -234,35 +256,40 @@ public class NavFragment extends Fragment {
                         continue;
                     }
 
-                    LatLng latLng = new LatLng(
+                    LatLng newLatLng = new LatLng(
                             amapManager.getAMap().getMyLocation().getLatitude(),
                             amapManager.getAMap().getMyLocation().getLongitude());
 
 
-                    if (latLng.equals(new LatLng(0, 0))) {
+                    if (newLatLng.longitude == 0 || newLatLng.latitude == 0) {
                         continue;
                     }
 
-                    Value.currentLatLng = new LatLng(
-                            amapManager.getAMap().getMyLocation().getLatitude(),
-                            amapManager.getAMap().getMyLocation().getLongitude());
+                    Value.currentLatLng = newLatLng;
 
                     if (!Value.isStartLocation) {
                         Value.isStartLocation = true;
-                        amapManager.moveCamera(latLng, 18);
+                        amapManager.moveCamera(Value.currentLatLng, MAP_ZOOM_IN_LOCATION);
+
+                        // 开始计划配送路径
+                        requireActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                startDeliveryPlan();
+                            }
+                        });
                     }
 
 
                     Log.d(TAG,
                             String.format("当前位置：%.6f, %.6f",
-                                    amapManager.getAMap().getMyLocation().getLatitude(),
-                                    amapManager.getAMap().getMyLocation().getLongitude()
+                                    Value.currentLatLng.longitude,
+                                    Value.currentLatLng.latitude
                             )
                     );
 
-
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(UPDATE_LOCATION_THREAD_SLEEP_TIME);
                     } catch (InterruptedException e) {
                         Log.e(TAG, "drawOrderRouteThread: 线程被中断");
                     }
@@ -325,7 +352,7 @@ public class NavFragment extends Fragment {
 
                     amapManager.addRoute(deliveryLatLonPointSequence.get(i), deliveryLatLonPointSequence.get(i + 1), null, 20);
                     try {
-                        Thread.sleep(500);
+                        Thread.sleep(DRAW_ORDER_ROUTE_THREAD_SLEEP_TIME);
                     } catch (InterruptedException e) {
                         Log.e(TAG, "drawOrderRouteThread: 线程被中断");
                     }
@@ -339,53 +366,96 @@ public class NavFragment extends Fragment {
         Threads.drawNextOrderRouteThread = new Thread(new Runnable() {
             @Override
             public void run() {
+                LatLng oldLatLng = null;
                 while (true) {
-                    if (Thread.currentThread().isInterrupted()) {
-                        Log.d(TAG, "drawNextOrderRouteThread: 线程被中断");
-                        return;
-                    }
+                    try {
+                        if (Thread.currentThread().isInterrupted()) {
+                            Log.d(TAG, "drawNextOrderRouteThread: 线程被中断");
+                            return;
+                        }
 
-                    amapManager.addRoute(
-                            new LatLonPoint(Value.currentLatLng.latitude, Value.currentLatLng.longitude),
-                            Point, Color.RED, 15,
-                            new RouteSearch.OnRouteSearchListener() {
-                                @Override
-                                public void onBusRouteSearched(BusRouteResult busRouteResult, int i) {
 
-                                }
+                        if (oldLatLng == Value.currentLatLng) {
+                            Log.d(TAG, "drawNextOrderRouteThread: 无移动");
+                            Thread.sleep(DRAW_NEXT_ORDER_ROUTE_THREAD_NO_ACTION_SLEEP_TIME);
+                            continue;
+                        } else if (oldLatLng != null) {
+                            int d = DrivingRouteOverlay.calculateDistance(oldLatLng, Value.currentLatLng);
+                            if (d < 10) {
+                                Log.d(TAG, "drawNextOrderRouteThread: 移动,但在误差允许内" + d + "米");
+                                Thread.sleep(DRAW_NEXT_ORDER_ROUTE_THREAD_NO_ACTION_SLEEP_TIME);
+                                continue;
+                            }
+                        }
 
-                                @Override
-                                public void onDriveRouteSearched(DriveRouteResult driveRouteResult, int i) {
-                                    String targetLocationText = "";
-                                    try {
-                                        if (planObject.isPickupPoint) {
-                                            targetLocationText = planObject.order.getStartLocation().getString("name");
-                                        } else {
-                                            targetLocationText = planObject.order.getEndLocation().getString("name");
-                                        }
-                                    } catch (JSONException e) {
-                                        throw new RuntimeException(e);
+                        amapManager.getRoute(
+                                Value.currentLatLng,
+                                new LatLng(Point.getLatitude(), Point.getLongitude()),
+                                new RouteSearch.OnRouteSearchListener() {
+                                    @Override
+                                    public void onBusRouteSearched(BusRouteResult busRouteResult, int i) {
+
                                     }
 
-                                    setFloatTipsText(
-                                            targetLocationText,
-                                            String.valueOf(driveRouteResult.getPaths().get(0).getDistance()),
-                                            planObject.isPickupPoint);
-                                }
+                                    @Override
+                                    public void onDriveRouteSearched(DriveRouteResult driveRouteResult, int i) {
+                                        if (i == 1000) {
+                                            Log.i(TAG, "驾车路径规划成功");
 
-                                @Override
-                                public void onWalkRouteSearched(WalkRouteResult walkRouteResult, int i) {
+                                            DrivePath drivePath = driveRouteResult.getPaths().get(0);
+                                            if (drivePath == null) {
+                                                return;
+                                            }
 
-                                }
+                                            DrivingRouteOverlay newNextRouteOverlay = new DrivingRouteOverlay(
+                                                    context, amapManager.getAMap(), drivePath, null);
+                                            newNextRouteOverlay.setRouteWidth(15);
+                                            newNextRouteOverlay.setIsColorfulline(true);
+                                            newNextRouteOverlay.addToMap(Color.RED);
+                                            if (nextRouteOverlay != null) {
+                                                nextRouteOverlay.removeFromMap();
+                                            }
+                                            nextRouteOverlay = newNextRouteOverlay;
 
-                                @Override
-                                public void onRideRouteSearched(RideRouteResult rideRouteResult, int i) {
+                                            int dis = (int) drivePath.getDistance();
+                                            int dur = (int) drivePath.getDuration();
+                                            String des = MapUtil.getFriendlyTime(dur) + "(" + MapUtil.getFriendlyLength(dis) + ")";
+                                            Log.d(TAG, des);
 
-                                }
-                            });
+                                            String targetLocationText = "";
+                                            try {
+                                                if (planObject.isPickupPoint) {
+                                                    targetLocationText = planObject.order.getStartLocation().getString("name");
+                                                } else {
+                                                    targetLocationText = planObject.order.getEndLocation().getString("name");
+                                                }
+                                            } catch (JSONException e) {
+                                                throw new RuntimeException(e);
+                                            }
 
-                    try {
-                        Thread.sleep(5000);
+                                            setFloatTipsText(
+                                                    targetLocationText,
+                                                    String.valueOf(driveRouteResult.getPaths().get(0).getDistance()),
+                                                    planObject.isPickupPoint);
+
+                                        } else {
+                                            Log.e(TAG, "驾车路径规划失败,错误码：" + i);
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onWalkRouteSearched(WalkRouteResult walkRouteResult, int i) {
+
+                                    }
+
+                                    @Override
+                                    public void onRideRouteSearched(RideRouteResult rideRouteResult, int i) {
+
+                                    }
+                                });
+                        oldLatLng = Value.currentLatLng;
+
+                        Thread.sleep(DRAW_NEXT_ORDER_ROUTE_THREAD_SLEEP_TIME);
                     } catch (InterruptedException e) {
                         Log.e(TAG, "drawNextOrderRouteThread: 线程被中断");
                         return;
@@ -397,63 +467,88 @@ public class NavFragment extends Fragment {
     }
 
     private void startDeliveryPlan() {
-        Threads.doDeliveryPlanThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (true) {
+        Threads.doDeliveryPlanThread.interrupt();
+        Threads.drawOrderRouteThread.interrupt();
+        Threads.drawNextOrderRouteThread.interrupt();
 
-                    if (Thread.currentThread().isInterrupted()) {
-                        Log.d(TAG, "doDeliveryPlanThread: 线程被中断");
-                        return;
-                    }
-
-                    if (!Value.isStartLocation) {
+        if (acceptedOrders.isEmpty()) { // 无订单, 请求订单
+            MainActivity mainActivity = (MainActivity) requireActivity();
+            OrderFragment orderFragment = (OrderFragment) mainActivity.getOrderFragment();
+            orderFragment.requestAcceptOrderInNavFragment();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (acceptedOrders.isEmpty()) {
                         try {
-                            Thread.sleep(5000);
+                            System.out.println("等待订单...");
+                            Thread.sleep(WAITING_ORDER_THREAD_SLEEP_TIME);
                         } catch (InterruptedException e) {
-                            Log.e(TAG, "startUpdateLocation: " + e);
+                            e.printStackTrace();
                         }
-                        continue;
                     }
-
-                    DeliveryRouteDynamic.startPlan(
-                            context,
-                            acceptedOrders,
-                            new LatLonPoint(Value.currentLatLng.latitude, Value.currentLatLng.longitude),
-                            new DeliveryRouteDynamic.OnSequencePlannedListener() {
-                                @Override
-                                public void onSequencePlanned(List<DeliveryRouteDynamic.PlanObject> planResult) {
-
-                                    if (planResult.isEmpty()) {
-                                        return;
-                                    }
-
-                                    List<LatLonPoint> deliveryLatLonPointSequence = new ArrayList<>();
-                                    for (int i = 0; i < planResult.size(); i++) {
-                                        Order order = planResult.get(i).order;
-                                        LatLonPoint point = planResult.get(i).point;
-                                        deliveryLatLonPointSequence.add(point);
-                                    }
-
-                                    Log.d("DeliveryRouteDynamic", "配送序列： " + deliveryLatLonPointSequence);
-                                    //amapManager.addPolyline(deliveryLatLonPointSequence);
-
-                                    amapManager.clear();
-                                    startDrawOrderRoute(deliveryLatLonPointSequence);
-                                    startDrawNextOrderRoute(deliveryLatLonPointSequence.get(0), planResult.get(0));
-
-                                }
-
-                                @Override
-                                public void onPlanFailed(String errorMsg) {
-
-                                }
-                            });
-                    break;
+                    startDeliveryPlan();    //再次尝试
                 }
-            }
-        });
-        Threads.doDeliveryPlanThread.start();
+            }).start();
+        }else {  // 有订单, 开始规划路线
+            Log.d(TAG, "收到订单，开始规划路线");
+            Threads.doDeliveryPlanThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (true) {
+
+                        if (Thread.currentThread().isInterrupted()) {
+                            Log.d(TAG, "doDeliveryPlanThread: 线程被中断");
+                            return;
+                        }
+
+                        if (!Value.isStartLocation) {
+                            try {
+                                Thread.sleep(DELIVERY_PLAN_THREAD_WAITING_SLEEP_TIME);
+                            } catch (InterruptedException e) {
+                                Log.e(TAG, "startUpdateLocation: " + e);
+                            }
+                            continue;
+                        }
+
+                        DeliveryRouteDynamic.startPlan(
+                                context,
+                                acceptedOrders,
+                                new LatLonPoint(Value.currentLatLng.latitude, Value.currentLatLng.longitude),
+                                new DeliveryRouteDynamic.OnSequencePlannedListener() {
+                                    @Override
+                                    public void onSequencePlanned(List<DeliveryRouteDynamic.PlanObject> planResult) {
+
+                                        if (planResult.isEmpty()) {
+                                            return;
+                                        }
+
+                                        List<LatLonPoint> deliveryLatLonPointSequence = new ArrayList<>();
+                                        for (int i = 0; i < planResult.size(); i++) {
+                                            Order order = planResult.get(i).order;
+                                            LatLonPoint point = planResult.get(i).point;
+                                            deliveryLatLonPointSequence.add(point);
+                                        }
+
+                                        Log.d("DeliveryRouteDynamic", "配送序列： " + deliveryLatLonPointSequence);
+                                        //amapManager.addPolyline(deliveryLatLonPointSequence);
+
+                                        amapManager.clear();
+                                        startDrawOrderRoute(deliveryLatLonPointSequence);
+                                        startDrawNextOrderRoute(deliveryLatLonPointSequence.get(0), planResult.get(0));
+
+                                    }
+
+                                    @Override
+                                    public void onPlanFailed(String errorMsg) {
+
+                                    }
+                                });
+                        break;
+                    }
+                }
+            });
+            Threads.doDeliveryPlanThread.start();
+        }
     }
 
     public void setAcceptedOrders(List<Order> acceptedOrders) {
@@ -467,4 +562,6 @@ public class NavFragment extends Fragment {
         String text = String.format("正在前往 %s %s\n距离：%s 米", targetLocationText, action, distanceText);
         ViewHolder.tvFloatText.setText(text);
     }
+
+
 }

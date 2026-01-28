@@ -3,6 +3,7 @@ package com.anrola.onmyway.Fragments;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -85,7 +86,6 @@ public class LoginFragment extends Fragment {
         super.onDetach();
         switchListener = null;
     }
-
     private void initView(View view) {
         context = view.getContext();
         sharedPreferencesManager = SharedPreferencesManager.getInstance(context);

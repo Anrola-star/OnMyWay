@@ -21,10 +21,6 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.amap.api.services.core.AMapException;
-import com.amap.api.services.core.LatLonPoint;
-import com.amap.api.services.route.DistanceResult;
-import com.amap.api.services.route.DistanceSearch;
 import com.anrola.onmyway.Activities.MainActivity;
 import com.anrola.onmyway.Adapter.OrderListAdapter;
 import com.anrola.onmyway.Entity.Order;
@@ -47,7 +43,7 @@ public class OrderFragment extends Fragment {
     private SharedPreferencesManager sharedPreferencesManager;
 
 
-    private List<Order> orderList = new ArrayList<>();
+    private List<Order> unacceptOrderList = new ArrayList<>();
     private List<Order> acceptedOrderList = new ArrayList<>();
     private OrderListAdapter orderListAdapter;
 
@@ -128,7 +124,7 @@ public class OrderFragment extends Fragment {
         ViewHolder.vpOrderList.setLayoutManager(linearLayoutManager);
 
         // 初始化适配器并绑定
-        orderListAdapter = new OrderListAdapter(getContext(), orderList);
+        orderListAdapter = new OrderListAdapter(getContext(), unacceptOrderList);
         ViewHolder.vpOrderList.setAdapter(orderListAdapter);
 
         // 设置接单按钮点击事件
@@ -164,30 +160,8 @@ public class OrderFragment extends Fragment {
                     case HandlerWhats.getUnAcceptedOrderHandlerWhat: // 获取未接单订单
                         try {
                             JSONArray jsonArray = new JSONArray(msg.obj.toString());
-                            for (int i = 0; i < jsonArray.length(); i++) {
-                                JSONObject jsonObject = jsonArray.getJSONObject(i);
-                                Order order = new Order(
-                                        jsonObject.getString("no"),
-                                        jsonObject.getString("title"),
-                                        jsonObject.getString("receiverName"),
-                                        jsonObject.getString("receiverMobile"),
-                                        jsonObject.getString("receiverProvince"),
-                                        jsonObject.getString("receiverCity"),
-                                        jsonObject.getString("receiverDistrict"),
-                                        jsonObject.getString("receiverAddress"),
-                                        jsonObject.getJSONObject("startLocation"),
-                                        jsonObject.getJSONObject("endLocation"),
-                                        jsonObject.getInt("distance"),
-                                        jsonObject.getInt("amount"),
-                                        jsonObject.getString("startTime"),
-                                        jsonObject.getString("requireTime"),
-                                        jsonObject.getBoolean("isAccepted"),
-                                        jsonObject.getBoolean("isPickup"),
-                                        jsonObject.getBoolean("isFinished")
-                                );
-                                orderList.add(order);
-                            }
-                            orderListAdapter.updateData(orderList);
+                            unacceptOrderList = getOrderListByJSONArray(jsonArray);
+                            orderListAdapter.updateData(unacceptOrderList);
                         } catch (JSONException e) {
                             Log.e(Value.TAG, "JSON解析失败：" + e.getMessage());
                         }
@@ -195,29 +169,7 @@ public class OrderFragment extends Fragment {
                     case HandlerWhats.getAcceptedOrderHandlerWhat: // 获取已接单订单
                         try {
                             JSONArray jsonArray = new JSONArray(msg.obj.toString());
-                            for (int i = 0; i < jsonArray.length(); i++) {
-                                JSONObject jsonObject = jsonArray.getJSONObject(i);
-                                Order order = new Order(
-                                        jsonObject.getString("no"),
-                                        jsonObject.getString("title"),
-                                        jsonObject.getString("receiverName"),
-                                        jsonObject.getString("receiverMobile"),
-                                        jsonObject.getString("receiverProvince"),
-                                        jsonObject.getString("receiverCity"),
-                                        jsonObject.getString("receiverDistrict"),
-                                        jsonObject.getString("receiverAddress"),
-                                        jsonObject.getJSONObject("startLocation"),
-                                        jsonObject.getJSONObject("endLocation"),
-                                        jsonObject.getInt("distance"),
-                                        jsonObject.getInt("amount"),
-                                        jsonObject.getString("startTime"),
-                                        jsonObject.getString("requireTime"),
-                                        jsonObject.getBoolean("isAccepted"),
-                                        jsonObject.getBoolean("isPickUp"),
-                                        jsonObject.getBoolean("isFinished")
-                                );
-                                acceptedOrderList.add(order);
-                            }
+                            acceptedOrderList = getOrderListByJSONArray(jsonArray);
                             orderListAdapter.updateData(acceptedOrderList);
                             MainActivity mainActivity = (MainActivity) requireActivity();
                             NavFragment navFragment = (NavFragment) mainActivity.getNavFragment();
@@ -265,7 +217,7 @@ public class OrderFragment extends Fragment {
                         Value.isUnreceivedOrderPage = false;
                         break;
                 }
-                orderList.clear();
+                unacceptOrderList.clear();
                 acceptedOrderList.clear();
                 requestOrder(Value.isUnreceivedOrderPage, Value.orderByIndex);
             }
@@ -284,7 +236,7 @@ public class OrderFragment extends Fragment {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Value.orderByIndex = position;
-                orderList.clear();
+                unacceptOrderList.clear();
                 requestOrder(Value.isUnreceivedOrderPage, Value.orderByIndex);
             }
 
@@ -307,30 +259,34 @@ public class OrderFragment extends Fragment {
         builder.setTitle(null);
         builder.setPositiveButton(null, null);
         builder.setNegativeButton(null, null);
-        View view = LayoutInflater.from(context).inflate(R.layout.fo_dialog_order_setting, null);
+        View dialogView = LayoutInflater.from(context).inflate(R.layout.fo_dialog_order_setting, null);
 
-        Button btnSaveSetting = view.findViewById(R.id.btn_save_setting);
-        Spinner spinnerAmount = view.findViewById(R.id.fo_spinner_amount);
-        Spinner spinnerDistance = view.findViewById(R.id.fo_spinner_distance);
-        Spinner spinnerAutoAcceptMax = view.findViewById(R.id.fo_spinner_auto_accept_max);
-        Spinner spinnerAutoAcceptPriority = view.findViewById(R.id.fo_spinner_auto_accept_priority);
+        Button btnSaveSetting = dialogView.findViewById(R.id.btn_save_setting);
+        Spinner spinnerAmount = dialogView.findViewById(R.id.fo_spinner_amount);
+        Spinner spinnerDistance = dialogView.findViewById(R.id.fo_spinner_distance);
+        Spinner spinnerAutoAcceptMax = dialogView.findViewById(R.id.fo_spinner_auto_accept_max);
+        Spinner spinnerAutoAcceptPriority = dialogView.findViewById(R.id.fo_spinner_auto_accept_priority);
+
+
+
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+        dialog.setCancelable(false); // 禁止返回键取消
+        dialog.setCanceledOnTouchOutside(false); // 禁止点击空白处取消
+
 
         btnSaveSetting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                //TODO: 保存设置
+                dialog.dismiss();
             }
         });
 
-
-        builder.setView(view);
-        AlertDialog dialog = builder.create();
-        dialog.setCancelable(false); // 禁止返回键取消
-        dialog.setCanceledOnTouchOutside(false); // 禁止点击空白处取消
         dialog.show();
     }
 
-    private void requestOrder(boolean isUnreceivedOrderPage, int orderBy) {
+    public void requestOrder(boolean isUnreceivedOrderPage, int orderBy) {
         if (isUnreceivedOrderPage) {
             String url = Value.baseURL + "/order/all/unaccepted?" + "orderBy=" + orderBy;
             myRequest.get(url, handler, HandlerWhats.getUnAcceptedOrderHandlerWhat);
@@ -340,6 +296,10 @@ public class OrderFragment extends Fragment {
             String token = sharedPreferencesManager.get(key);
             myRequest.get(url, handler, HandlerWhats.getAcceptedOrderHandlerWhat, token);
         }
+    }
+
+    public void requestAcceptOrderInNavFragment() {
+        ViewHolder.tabOrderType.selectTab(ViewHolder.tabOrderType.getTabAt(1));
     }
 
     private void requestAcceptOrder(String orderNo) {
@@ -362,8 +322,6 @@ public class OrderFragment extends Fragment {
         }).start();
     }
 
-
-
     private void pickUpOrder(String orderNo) {
 
         String url = Value.baseURL + "/order/pickup?orderNo=" + orderNo;
@@ -373,4 +331,35 @@ public class OrderFragment extends Fragment {
 
     }
 
+    private List<Order> getOrderListByJSONArray(JSONArray jsonArray) {
+        List<Order> orderList = new ArrayList<>();
+        try {
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                Order order = new Order(
+                        jsonObject.getString("no"),
+                        jsonObject.getString("title"),
+                        jsonObject.getString("receiverName"),
+                        jsonObject.getString("receiverMobile"),
+                        jsonObject.getString("receiverProvince"),
+                        jsonObject.getString("receiverCity"),
+                        jsonObject.getString("receiverDistrict"),
+                        jsonObject.getString("receiverAddress"),
+                        jsonObject.getJSONObject("startLocation"),
+                        jsonObject.getJSONObject("endLocation"),
+                        jsonObject.getInt("distance"),
+                        jsonObject.getInt("amount"),
+                        jsonObject.getString("startTime"),
+                        jsonObject.getString("requireTime"),
+                        jsonObject.getBoolean("isAccepted"),
+                        jsonObject.getBoolean("isPickUp"),
+                        jsonObject.getBoolean("isFinished")
+                );
+                orderList.add(order);
+            }
+            return orderList;
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

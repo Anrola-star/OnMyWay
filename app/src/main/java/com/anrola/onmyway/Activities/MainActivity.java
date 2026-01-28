@@ -181,4 +181,12 @@ public class MainActivity extends AppCompatActivity {
     public Fragment getNavFragment() {
         return navFragment;
     }
+
+    public Fragment getOrderFragment() {
+        return orderFragment;
+    }
+
+    public Fragment getMineFragment() {
+        return mineFragment;
+    }
 }

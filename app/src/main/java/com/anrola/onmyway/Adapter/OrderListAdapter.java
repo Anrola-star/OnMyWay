@@ -6,11 +6,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.amap.api.maps.model.LatLng;
+import com.amap.api.services.core.LatLonPoint;
 import com.anrola.onmyway.Entity.Order;
 import com.anrola.onmyway.R;
+import com.anrola.onmyway.Utils.DrivingRouteOverlay;
 
 import org.json.JSONException;
 
@@ -54,46 +58,58 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
         String startLocationName = "";
         String endLocationName = "";
         try {
-            startLocationName =currentOrder.getStartLocation().getString("name");
-            endLocationName =currentOrder.getEndLocation().getString("name");
+            startLocationName = currentOrder.getStartLocation().getString("name");
+            endLocationName = currentOrder.getEndLocation().getString("name");
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
 
         // 填充数据到控件
-        holder.tvOrderId.setText("订单ID：" + currentOrder.getNo());
+        holder.tvOrderId.setText(String.format("订单编号：%s", currentOrder.getNo()));
         holder.tvOrderTitle.setText(currentOrder.getTitle());
         holder.tvOrderAmount.setText(String.valueOf(currentOrder.getAmount()));
         holder.tvOrderTime.setText(currentOrder.getStartTime());
-        holder.tvOrderPublisher.setText("发布人：" + currentOrder.getReceiverName());
-        holder.tvOrderFromAndTo.setText(startLocationName + " -> " + endLocationName);
-        holder.tvOrderDistance.setText("距离：" + currentOrder.getDistance());
+        holder.tvOrderPublisher.setText(String.format("接收人：%s", currentOrder.getReceiverName()));
+        holder.tvOrderFromAndTo.setText(String.format("从 %s 到 %s", startLocationName, endLocationName));
+        LatLng startLocation = new LatLng(0, 0);
+        LatLng endLocation = new LatLng(0, 0);
+        try {
+            startLocation = new LatLng(
+                    currentOrder.getStartLocation().getDouble("latitude"),
+                    currentOrder.getStartLocation().getDouble("longitude"));
+            endLocation = new LatLng(
+                    currentOrder.getEndLocation().getDouble("latitude"),
+                    currentOrder.getEndLocation().getDouble("longitude"));
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+        int distance = DrivingRouteOverlay.calculateDistance(startLocation, endLocation);
+        holder.tvOrderDistance.setText(String.format("距离：%s 米", distance));
 
         if (currentOrder.isAccepted()) {
             if (currentOrder.isPickup()) {
                 holder.tvOrderStatus.setText("配送中");
-            }else {
+            } else {
                 holder.tvOrderStatus.setText("待取单");
             }
         } else {
             holder.tvOrderStatus.setText("待接单");
         }
 
-        if (currentOrder.isAccepted()){
+        if (currentOrder.isAccepted()) {
             holder.btnTakeOrder.setVisibility(View.GONE);
-            if (currentOrder.isPickup()){
+            if (currentOrder.isPickup()) {
                 holder.btnPickOrder.setVisibility(View.GONE);
                 holder.btnDoneOrder.setVisibility(View.VISIBLE);
-            }else{
+            } else {
                 holder.btnPickOrder.setVisibility(View.VISIBLE);
                 holder.btnDoneOrder.setVisibility(View.GONE);
             }
-        }else{
+        } else {
             holder.btnTakeOrder.setVisibility(View.VISIBLE);
             holder.btnPickOrder.setVisibility(View.GONE);
             holder.btnDoneOrder.setVisibility(View.GONE);
         }
-
 
 
         // 接单按钮点击事件
@@ -187,8 +203,9 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
     public interface OnTakeOrderClickListener {
         /**
          * 接单点击回调
+         *
          * @param position 点击的订单位置
-         * @param order 点击的订单数据
+         * @param order    点击的订单数据
          */
         void onTakeOrderClick(int position, Order order);
     }
@@ -196,8 +213,9 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
     public interface OnPickOrderClickListener {
         /**
          * 领单点击回调
+         *
          * @param position 点击的订单位置
-         * @param order 点击的订单数据
+         * @param order    点击的订单数据
          */
         void onPickOrderClick(int position, Order order);
     }
@@ -205,8 +223,9 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
     public interface OnDoneOrderClickListener {
         /**
          * 订单完成点击回调
+         *
          * @param position 点击的订单位置
-         * @param order 点击的订单数据
+         * @param order    点击的订单数据
          */
         void onDoneOrderClick(int position, Order order);
     }

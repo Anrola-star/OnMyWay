@@ -200,8 +200,10 @@ public class RegisterFragment extends Fragment {
                 throw new RuntimeException(e);
             }
 
+            String baseURL = myRequest.getBaseURL(context);
+            String url = baseURL + "user/register";
             myRequest.post(
-                    "http://192.168.31.100:8080/api/register",
+                    url,
                     registerJson,
                     handler,
                     RegisterHandlerWhat
