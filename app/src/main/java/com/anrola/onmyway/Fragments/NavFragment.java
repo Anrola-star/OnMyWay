@@ -9,16 +9,12 @@ import static com.anrola.onmyway.Value.GlobalConstants.UPDATE_LOCATION_THREAD_SL
 import static com.anrola.onmyway.Value.GlobalConstants.WAITING_ORDER_THREAD_SLEEP_TIME;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
-import android.location.LocationManager;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
-
-import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -71,15 +67,17 @@ public class NavFragment extends Fragment {
     }
 
     private static class ViewHolder {
-        private static MapView mapView;
-        private static TextView tvSettings;
-        private static TextView tvMyOrders;
-        private static Button btnFloat;
-        private static Button btnMyLocation;
-        private static Button btnRight;
-        private static TextView tvFloatText;
-        private static CardView cvFloatTips;
+        private MapView mapView;
+        private TextView tvSettings;
+        private TextView tvMyOrders;
+        private Button btnFloat;
+        private Button btnMyLocation;
+        private Button btnRight;
+        private TextView tvFloatText;
+        private CardView cvFloatTips;
     }
+
+    private ViewHolder viewHolder = new ViewHolder();
 
     private static class Threads {
         public static Thread updateLocationThread = new Thread();
@@ -108,27 +106,27 @@ public class NavFragment extends Fragment {
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        ViewHolder.mapView.onSaveInstanceState(outState);
+        viewHolder.mapView.onSaveInstanceState(outState);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        ViewHolder.mapView.onDestroy();
+        viewHolder.mapView.onDestroy();
     }
 
     @Override
     public void onLowMemory() {
         super.onLowMemory();
-        ViewHolder.mapView.onLowMemory();
+        viewHolder.mapView.onLowMemory();
     }
 
     @Override
     public void onPause() {
         super.onPause();
 
-        if (ViewHolder.mapView != null) {
-            ViewHolder.mapView.onPause();
+        if (viewHolder.mapView != null) {
+            viewHolder.mapView.onPause();
         }
     }
 
@@ -136,26 +134,26 @@ public class NavFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        if (ViewHolder.mapView != null) {
-            ViewHolder.mapView.onResume();
+        if (viewHolder.mapView != null) {
+            viewHolder.mapView.onResume();
         }
     }
 
     private void intiView(View view) {
         context = view.getContext();
-        ViewHolder.tvSettings = view.findViewById(R.id.tv_setting);
-        ViewHolder.tvMyOrders = view.findViewById(R.id.tv_my_orders);
-        ViewHolder.btnFloat = view.findViewById(R.id.btn_close_float);
-        ViewHolder.btnRight = view.findViewById(R.id.btn_right);
-        ViewHolder.tvFloatText = view.findViewById(R.id.tv_float_text);
-        ViewHolder.cvFloatTips = view.findViewById(R.id.cv_float_tips);
-        ViewHolder.btnMyLocation = view.findViewById(R.id.btn_my_location);
+        viewHolder.tvSettings = view.findViewById(R.id.tv_setting);
+        viewHolder.tvMyOrders = view.findViewById(R.id.tv_my_orders);
+        viewHolder.btnFloat = view.findViewById(R.id.btn_close_float);
+        viewHolder.btnRight = view.findViewById(R.id.btn_right);
+        viewHolder.tvFloatText = view.findViewById(R.id.tv_float_text);
+        viewHolder.cvFloatTips = view.findViewById(R.id.cv_float_tips);
+        viewHolder.btnMyLocation = view.findViewById(R.id.btn_my_location);
     }
 
     private void initMap(View view, Bundle savedInstanceState) {
 
-        ViewHolder.mapView = view.findViewById(R.id.fn_map);
-        amapManager = new AMapManager(context, ViewHolder.mapView);
+        viewHolder.mapView = view.findViewById(R.id.fn_map);
+        amapManager = new AMapManager(context, viewHolder.mapView);
 
         amapManager.initMap(context);
         amapManager.CreateMap(new AMapManager.onMapLoadFinishedListener() {
@@ -179,7 +177,7 @@ public class NavFragment extends Fragment {
     }
 
     private void setClickListener() {
-        ViewHolder.tvSettings.setOnClickListener(new View.OnClickListener() {
+        viewHolder.tvSettings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //TODO
@@ -188,13 +186,13 @@ public class NavFragment extends Fragment {
 
             }
         });
-        ViewHolder.tvMyOrders.setOnClickListener(new View.OnClickListener() {
+        viewHolder.tvMyOrders.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
             }
         });
 
-        ViewHolder.btnFloat.setOnClickListener(new View.OnClickListener() {
+        viewHolder.btnFloat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // 动画保留不会改变点击判定点，所以复用收起按钮
@@ -210,7 +208,7 @@ public class NavFragment extends Fragment {
                             Animation.RELATIVE_TO_PARENT, 0f, // fromYDelta：Y轴初始位置
                             Animation.RELATIVE_TO_PARENT, 0f  // toYDelta：Y轴最终位置
                     );
-                    ViewHolder.btnRight.setVisibility(View.GONE);
+                    viewHolder.btnRight.setVisibility(View.GONE);
                 } else {
                     Value.isShowFloatTips = false;
                     translate = new TranslateAnimation(
@@ -219,7 +217,7 @@ public class NavFragment extends Fragment {
                             Animation.RELATIVE_TO_PARENT, 0f, // fromYDelta：Y轴初始位置
                             Animation.RELATIVE_TO_PARENT, 0f  // toYDelta：
                     );
-                    ViewHolder.btnRight.setVisibility(View.VISIBLE);
+                    viewHolder.btnRight.setVisibility(View.VISIBLE);
                 }
 
                 animationSet.addAnimation(translate);
@@ -228,10 +226,10 @@ public class NavFragment extends Fragment {
                 animationSet.setInterpolator(new AccelerateInterpolator());
                 Anim = animationSet;
 
-                ViewHolder.cvFloatTips.startAnimation(Anim);
+                viewHolder.cvFloatTips.startAnimation(Anim);
             }
         });
-        ViewHolder.btnMyLocation.setOnClickListener(new View.OnClickListener() {
+        viewHolder.btnMyLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (!Value.isStartLocation) {
@@ -560,7 +558,7 @@ public class NavFragment extends Fragment {
         String action = isPickup ? "取单点" : "送达点";
 
         String text = String.format("正在前往 %s %s\n距离：%s 米", targetLocationText, action, distanceText);
-        ViewHolder.tvFloatText.setText(text);
+        viewHolder.tvFloatText.setText(text);
     }
 
 

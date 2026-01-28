@@ -52,21 +52,22 @@ public class MineFragment extends Fragment {
 
     private static class ViewHolder {
         // 控件
-        private static CircleImageView ivAvatar;
-        private static TextView tvNickname;
-        private static TextView tvRiderId;
-        private static TextView tvEditInfo;
-        private static TextView tvTodayIncome;
-        private static TextView tvMonthIncome;
-        private static TextView tvTotalIncome;
-        private static Button btnLogout;
-        private static TextView tvMyIncomeDetail;
-        private static TextView tvMySetting;
+        private CircleImageView ivAvatar;
+        private TextView tvNickname;
+        private TextView tvRiderId;
+        private TextView tvEditInfo;
+        private TextView tvTodayIncome;
+        private TextView tvMonthIncome;
+        private TextView tvTotalIncome;
+        private Button btnLogout;
+        private TextView tvMyIncomeDetail;
+        private TextView tvMySetting;
         // 图表相关控件
-        private static LineChart incomeChart;
-        private static TextView tvWeek;
-        private static TextView tvMonth;
+        private LineChart incomeChart;
+        private TextView tvWeek;
+        private TextView tvMonth;
     }
+    private ViewHolder viewHolder = new ViewHolder();
     private static class ChartData {
         private static final List<Entry> entriesWeek = new ArrayList<>();
         private static final List<String> xWeekLabels = new ArrayList<>();
@@ -130,16 +131,16 @@ public class MineFragment extends Fragment {
     private void initView(View view) {
         context = view.getContext();
         sharedPreferencesManager = SharedPreferencesManager.getInstance(context);
-        ViewHolder.ivAvatar = view.findViewById(R.id.mf_iv_avatar);
-        ViewHolder.tvNickname = view.findViewById(R.id.mf_tv_nickname);
-        ViewHolder.tvRiderId = view.findViewById(R.id.mf_tv_rider_id);
-        ViewHolder.tvEditInfo = view.findViewById(R.id.mf_tv_edit_info);
-        ViewHolder.tvTodayIncome = view.findViewById(R.id.mf_tv_today_income);
-        ViewHolder.tvMonthIncome = view.findViewById(R.id.mf_tv_month_income);
-        ViewHolder.tvTotalIncome = view.findViewById(R.id.mf_tv_total_income);
-        ViewHolder.btnLogout = view.findViewById(R.id.mf_btn_logout);
-        ViewHolder.tvMyIncomeDetail = view.findViewById(R.id.mf_tv_my_income_detail);
-        ViewHolder.tvMySetting = view.findViewById(R.id.mf_tv_my_setting);
+        viewHolder.ivAvatar = view.findViewById(R.id.mf_iv_avatar);
+        viewHolder.tvNickname = view.findViewById(R.id.mf_tv_nickname);
+        viewHolder.tvRiderId = view.findViewById(R.id.mf_tv_rider_id);
+        viewHolder.tvEditInfo = view.findViewById(R.id.mf_tv_edit_info);
+        viewHolder.tvTodayIncome = view.findViewById(R.id.mf_tv_today_income);
+        viewHolder.tvMonthIncome = view.findViewById(R.id.mf_tv_month_income);
+        viewHolder.tvTotalIncome = view.findViewById(R.id.mf_tv_total_income);
+        viewHolder.btnLogout = view.findViewById(R.id.mf_btn_logout);
+        viewHolder.tvMyIncomeDetail = view.findViewById(R.id.mf_tv_my_income_detail);
+        viewHolder.tvMySetting = view.findViewById(R.id.mf_tv_my_setting);
     }
 
     private void initHandler() {
@@ -181,7 +182,7 @@ public class MineFragment extends Fragment {
                                 }
                                 loadChartData(isWeekData, ChartData.entriesWeek, ChartData.xWeekLabels);
                                 Log.d(TAG, ChartData.entriesWeek.toString());
-                                ViewHolder.tvTodayIncome.setText(String.format("¥%s", ChartData.weekTotalIncome));
+                                viewHolder.tvTodayIncome.setText(String.format("¥%s", ChartData.weekTotalIncome));
                             } else if (response.getInt("code") == 500) {
                                 Toast.makeText(getActivity(), "收入获取错误", Toast.LENGTH_SHORT).show();
                             }
@@ -203,7 +204,7 @@ public class MineFragment extends Fragment {
                                     ChartData.xMonthLabels.add(String.valueOf(i + 1) + "日");
                                 }
                                 Log.d(TAG, ChartData.entriesWeek.toString());
-                                ViewHolder.tvMonthIncome.setText(String.format("¥%s", ChartData.monthTotalIncome));
+                                viewHolder.tvMonthIncome.setText(String.format("¥%s", ChartData.monthTotalIncome));
                                 isMonthDataGetted = true;
                             } else if (response.getInt("code") == 500) {
                                 Toast.makeText(getActivity(), "收入获取错误", Toast.LENGTH_SHORT).show();
@@ -218,7 +219,7 @@ public class MineFragment extends Fragment {
                             if (response.getInt("code") == 200) {
                                 JSONObject data = response.getJSONObject("data");
                                 ChartData.totalIncome = data.getInt("income");
-                                ViewHolder.tvTotalIncome.setText(String.format("¥%s", ChartData.totalIncome));
+                                viewHolder.tvTotalIncome.setText(String.format("¥%s", ChartData.totalIncome));
                             } else if (response.getInt("code") == 500) {
                                 Toast.makeText(getActivity(), "收入获取错误", Toast.LENGTH_SHORT).show();
                             }
@@ -236,11 +237,11 @@ public class MineFragment extends Fragment {
                                 UserData.userNickName = data.getString("nickname");
                                 UserData.userPhone = data.getString("phone");
                                 UserData.userAvatar = data.getInt("avatar");
-                                ViewHolder.tvNickname.setText(UserData.userNickName);
-                                ViewHolder.tvRiderId.setText(String.format("ID: %s", UserData.userId));
+                                viewHolder.tvNickname.setText(UserData.userNickName);
+                                viewHolder.tvRiderId.setText(String.format("ID: %s", UserData.userId));
                                 AssetsAvatarManager avatarManager = new AssetsAvatarManager(getActivity());
                                 List<Bitmap> avatars = avatarManager.getAllAvatars();
-                                ViewHolder.ivAvatar.setImageBitmap(avatars.get(UserData.userAvatar));
+                                viewHolder.ivAvatar.setImageBitmap(avatars.get(UserData.userAvatar));
                             } else if (response.getInt("code") == 500) {
                                 Toast.makeText(getActivity(), "用户信息获取错误", Toast.LENGTH_SHORT).show();
                             }
@@ -257,26 +258,26 @@ public class MineFragment extends Fragment {
     private void setClickEvents() {
 
         // 头像点击
-        ViewHolder.ivAvatar.setOnClickListener(v -> {
+        viewHolder.ivAvatar.setOnClickListener(v -> {
             showAvatarSelectDialog();
         });
         // 修改信息点击
-        ViewHolder.tvEditInfo.setOnClickListener(v->{
+        viewHolder.tvEditInfo.setOnClickListener(v->{
             Intent intent = new Intent(getActivity(), UserInfoActivity.class);
             startActivity(intent);
         });
         // 登出点击
         // 显示登出确认对话框
-        ViewHolder.btnLogout.setOnClickListener(v -> showLogoutDialog());
+        viewHolder.btnLogout.setOnClickListener(v -> showLogoutDialog());
         // 收益详情
         // TODO: 跳转到收益详情页面
-        ViewHolder.tvMyIncomeDetail.setOnClickListener(v -> Toast.makeText(getActivity(), "查看我的收益详情", Toast.LENGTH_SHORT).show());
+        viewHolder.tvMyIncomeDetail.setOnClickListener(v -> Toast.makeText(getActivity(), "查看我的收益详情", Toast.LENGTH_SHORT).show());
         // 设置点击
         // TODO: 跳转到系统设置页面
-        ViewHolder.tvMySetting.setOnClickListener(v -> Toast.makeText(getActivity(), "进入系统设置", Toast.LENGTH_SHORT).show());
+        viewHolder.tvMySetting.setOnClickListener(v -> Toast.makeText(getActivity(), "进入系统设置", Toast.LENGTH_SHORT).show());
 
         // 本周/本月切换
-        ViewHolder.tvWeek.setOnClickListener(v -> {
+        viewHolder.tvWeek.setOnClickListener(v -> {
             if (!isWeekData) {
                 isWeekData = true;
                 updateTabStyle();
@@ -284,7 +285,7 @@ public class MineFragment extends Fragment {
             }
         });
 
-        ViewHolder.tvMonth.setOnClickListener(v -> {
+        viewHolder.tvMonth.setOnClickListener(v -> {
             if (isWeekData) {
 
                 if (!isMonthDataGetted){
@@ -313,23 +314,23 @@ public class MineFragment extends Fragment {
     // 更新切换按钮样式（选中/未选中）
     private void updateTabStyle() {
         if (isWeekData) {
-            ViewHolder.tvWeek.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_light));
-            ViewHolder.tvWeek.setTextColor(getResources().getColor(android.R.color.white));
-            ViewHolder.tvMonth.setBackgroundColor(getResources().getColor(android.R.color.white));
-            ViewHolder.tvMonth.setTextColor(getResources().getColor(android.R.color.darker_gray));
+            viewHolder.tvWeek.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_light));
+            viewHolder.tvWeek.setTextColor(getResources().getColor(android.R.color.white));
+            viewHolder.tvMonth.setBackgroundColor(getResources().getColor(android.R.color.white));
+            viewHolder.tvMonth.setTextColor(getResources().getColor(android.R.color.darker_gray));
         } else {
-            ViewHolder.tvMonth.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_light));
-            ViewHolder.tvMonth.setTextColor(getResources().getColor(android.R.color.white));
-            ViewHolder.tvWeek.setBackgroundColor(getResources().getColor(android.R.color.white));
-            ViewHolder.tvWeek.setTextColor(getResources().getColor(android.R.color.darker_gray));
+            viewHolder.tvMonth.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_light));
+            viewHolder.tvMonth.setTextColor(getResources().getColor(android.R.color.white));
+            viewHolder.tvWeek.setBackgroundColor(getResources().getColor(android.R.color.white));
+            viewHolder.tvWeek.setTextColor(getResources().getColor(android.R.color.darker_gray));
         }
     }
 
     // 初始化图表控件
     private void initChartView(View view) {
-        ViewHolder.incomeChart = view.findViewById(R.id.mf_income_chart);
-        ViewHolder.tvWeek = view.findViewById(R.id.mf_tv_week);
-        ViewHolder.tvMonth = view.findViewById(R.id.mf_tv_month);
+        viewHolder.incomeChart = view.findViewById(R.id.mf_income_chart);
+        viewHolder.tvWeek = view.findViewById(R.id.mf_tv_week);
+        viewHolder.tvMonth = view.findViewById(R.id.mf_tv_month);
     }
 
     // 初始化图表样式
@@ -337,27 +338,27 @@ public class MineFragment extends Fragment {
         // 隐藏描述文字
         Description description = new Description();
         description.setEnabled(false);
-        ViewHolder.incomeChart.setDescription(description);
+        viewHolder.incomeChart.setDescription(description);
 
         // 隐藏图例
-        ViewHolder.incomeChart.getLegend().setEnabled(false);
+        viewHolder.incomeChart.getLegend().setEnabled(false);
 
         // 禁用触摸缩放
-        ViewHolder.incomeChart.setScaleEnabled(false);
+        viewHolder.incomeChart.setScaleEnabled(false);
 
         // X轴配置
-        XAxis xAxis = ViewHolder.incomeChart.getXAxis();
+        XAxis xAxis = viewHolder.incomeChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setDrawGridLines(false); // 隐藏X轴网格线
 
         // Y轴配置
-        YAxis leftYAxis = ViewHolder.incomeChart.getAxisLeft();
+        YAxis leftYAxis = viewHolder.incomeChart.getAxisLeft();
         leftYAxis.setDrawGridLines(true);
         leftYAxis.setGridColor(getResources().getColor(android.R.color.darker_gray));
-        ViewHolder.incomeChart.getAxisRight().setEnabled(false); // 隐藏右侧Y轴
+        viewHolder.incomeChart.getAxisRight().setEnabled(false); // 隐藏右侧Y轴
 
         // 禁用图表点击
-        ViewHolder.incomeChart.setClickable(false);
+        viewHolder.incomeChart.setClickable(false);
     }
 
     private void requestChartData(boolean isWeekData) {
@@ -413,11 +414,11 @@ public class MineFragment extends Fragment {
         LineData lineData = new LineData(dataSets);
 
         // 设置X轴标签
-        ViewHolder.incomeChart.getXAxis().setValueFormatter(new IndexAxisValueFormatter(xLabels));
+        viewHolder.incomeChart.getXAxis().setValueFormatter(new IndexAxisValueFormatter(xLabels));
 
         // 设置数据并刷新图表
-        ViewHolder.incomeChart.setData(lineData);
-        ViewHolder.incomeChart.invalidate(); // 刷新
+        viewHolder.incomeChart.setData(lineData);
+        viewHolder.incomeChart.invalidate(); // 刷新
     }
 
     // 加载用户数据
@@ -475,7 +476,7 @@ public class MineFragment extends Fragment {
             int selectedPos = adapter.getSelectedPosition();
             // TODO 更新头像数据库
             // 更新主界面头像
-            ViewHolder.ivAvatar.setImageBitmap(avatars.get(selectedPos));
+            viewHolder.ivAvatar.setImageBitmap(avatars.get(selectedPos));
             // 提示更换成功
             Toast.makeText(context, "头像更换成功", Toast.LENGTH_SHORT).show();
             // 关闭弹窗

@@ -49,14 +49,13 @@ public class OrderFragment extends Fragment {
 
 
     private static class ViewHolder {
-        private static RecyclerView vpOrderList;
-        private static TabLayout tabOrderType;
-        private static Spinner spinnerSort;
-
-        private static Button btnOrderSetting;
-        private static Button btnOrderRefresh;
-
+        private RecyclerView vpOrderList;
+        private TabLayout tabOrderType;
+        private Spinner spinnerSort;
+        private Button btnOrderSetting;
+        private Button btnOrderRefresh;
     }
+    private ViewHolder viewHolder = new ViewHolder();
 
     private static class Value {
 
@@ -108,10 +107,10 @@ public class OrderFragment extends Fragment {
         context = view.getContext();
         sharedPreferencesManager = SharedPreferencesManager.getInstance(context);
         Value.baseURL = myRequest.getBaseURL(context);
-        ViewHolder.vpOrderList = view.findViewById(R.id.of_vp_order_list);
-        ViewHolder.tabOrderType = view.findViewById(R.id.of_tab_order_type);
-        ViewHolder.spinnerSort = view.findViewById(R.id.of_spinner_sort);
-        ViewHolder.btnOrderSetting = view.findViewById(R.id.of_btn_order_setting);
+        viewHolder.vpOrderList = view.findViewById(R.id.of_vp_order_list);
+        viewHolder.tabOrderType = view.findViewById(R.id.of_tab_order_type);
+        viewHolder.spinnerSort = view.findViewById(R.id.of_spinner_sort);
+        viewHolder.btnOrderSetting = view.findViewById(R.id.of_btn_order_setting);
     }
 
     private void initValues() {
@@ -121,11 +120,11 @@ public class OrderFragment extends Fragment {
         // 设置布局管理器
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         linearLayoutManager.setOrientation(RecyclerView.VERTICAL);
-        ViewHolder.vpOrderList.setLayoutManager(linearLayoutManager);
+        viewHolder.vpOrderList.setLayoutManager(linearLayoutManager);
 
         // 初始化适配器并绑定
         orderListAdapter = new OrderListAdapter(getContext(), unacceptOrderList);
-        ViewHolder.vpOrderList.setAdapter(orderListAdapter);
+        viewHolder.vpOrderList.setAdapter(orderListAdapter);
 
         // 设置接单按钮点击事件
         orderListAdapter.setOnTakeOrderClickListener((position, order) -> {
@@ -206,7 +205,7 @@ public class OrderFragment extends Fragment {
     }
 
     private void setClickListener() {
-        ViewHolder.tabOrderType.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+        viewHolder.tabOrderType.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 switch (tab.getPosition()) {
@@ -232,7 +231,7 @@ public class OrderFragment extends Fragment {
 
             }
         });
-        ViewHolder.spinnerSort.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        viewHolder.spinnerSort.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Value.orderByIndex = position;
@@ -245,7 +244,7 @@ public class OrderFragment extends Fragment {
 
             }
         });
-        ViewHolder.btnOrderSetting.setOnClickListener(new View.OnClickListener() {
+        viewHolder.btnOrderSetting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 showOrderSettingDialog();
@@ -299,7 +298,7 @@ public class OrderFragment extends Fragment {
     }
 
     public void requestAcceptOrderInNavFragment() {
-        ViewHolder.tabOrderType.selectTab(ViewHolder.tabOrderType.getTabAt(1));
+        viewHolder.tabOrderType.selectTab(viewHolder.tabOrderType.getTabAt(1));
     }
 
     private void requestAcceptOrder(String orderNo) {
