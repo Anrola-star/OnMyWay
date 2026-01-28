@@ -3,7 +3,6 @@ package com.anrola.onmyway.Fragments;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -37,13 +36,14 @@ import com.anrola.onmyway.Utils.SharedPreferencesManager;
 public class LoginFragment extends Fragment {
 
     private static class ViewHolder {
-        private static Button btnLogin;
-        private static EditText etName;
-        private static EditText etPassword;
-        private static TextView tvGoRegister;  // 注册按钮
-        private static CheckBox cbRememberPWD;
-        private static CheckBox cbAutoLogin;
+        private Button btnLogin;
+        private EditText etName;
+        private EditText etPassword;
+        private TextView tvGoRegister;  // 注册按钮
+        private CheckBox cbRememberPWD;
+        private CheckBox cbAutoLogin;
     }
+    private ViewHolder viewHolder = new ViewHolder();
     private Context context;
     private Handler handler;
     private OnLoginFragmentSwitchListener switchListener;   // 切换登录注册界面监听器
@@ -75,8 +75,8 @@ public class LoginFragment extends Fragment {
         initView(view);
         initHandler();
         setClickEvents();
-        editTextController.setTextListener(context, ViewHolder.etName);
-        editTextController.setTextListener(context, ViewHolder.etPassword);
+        editTextController.setTextListener(context, viewHolder.etName);
+        editTextController.setTextListener(context, viewHolder.etPassword);
         initData();
         return view;
     }
@@ -89,12 +89,12 @@ public class LoginFragment extends Fragment {
     private void initView(View view) {
         context = view.getContext();
         sharedPreferencesManager = SharedPreferencesManager.getInstance(context);
-        ViewHolder.tvGoRegister = view.findViewById(R.id.lf_tv_go_register);
-        ViewHolder.btnLogin = view.findViewById(R.id.lf_btn_login);
-        ViewHolder.etName = view.findViewById(R.id.lf_et_name);
-        ViewHolder.etPassword = view.findViewById(R.id.lf_et_password);
-        ViewHolder.cbRememberPWD = view.findViewById(R.id.lf_cb_remember_pwd);
-        ViewHolder.cbAutoLogin = view.findViewById(R.id.lf_cb_auto_login);
+        viewHolder.tvGoRegister = view.findViewById(R.id.lf_tv_go_register);
+        viewHolder.btnLogin = view.findViewById(R.id.lf_btn_login);
+        viewHolder.etName = view.findViewById(R.id.lf_et_name);
+        viewHolder.etPassword = view.findViewById(R.id.lf_et_password);
+        viewHolder.cbRememberPWD = view.findViewById(R.id.lf_cb_remember_pwd);
+        viewHolder.cbAutoLogin = view.findViewById(R.id.lf_cb_auto_login);
     }
     private void initHandler() {
         handler = new Handler(Looper.getMainLooper()) {
@@ -129,13 +129,13 @@ public class LoginFragment extends Fragment {
                             String token = response.getJSONObject("data").getString("token");
 
                             sharedPreferencesManager.save(tKey, token);
-                            sharedPreferencesManager.save(nKey, ViewHolder.etName.getText().toString());
-                            sharedPreferencesManager.save(rKey, ViewHolder.cbRememberPWD.isChecked());
-                            sharedPreferencesManager.save(aKey, ViewHolder.cbAutoLogin.isChecked());
+                            sharedPreferencesManager.save(nKey, viewHolder.etName.getText().toString());
+                            sharedPreferencesManager.save(rKey, viewHolder.cbRememberPWD.isChecked());
+                            sharedPreferencesManager.save(aKey, viewHolder.cbAutoLogin.isChecked());
 
-                            if (ViewHolder.cbRememberPWD.isChecked()){
+                            if (viewHolder.cbRememberPWD.isChecked()){
                                 String  pKey = getString(R.string.shared_preferences_password_key);
-                                sharedPreferencesManager.save(pKey, ViewHolder.etPassword.getText().toString());
+                                sharedPreferencesManager.save(pKey, viewHolder.etPassword.getText().toString());
                             }
 
                             Intent intent = new Intent(getActivity(), MainActivity.class);
@@ -152,9 +152,9 @@ public class LoginFragment extends Fragment {
     }
     private void setClickEvents() {
         // 点击登录
-        ViewHolder.btnLogin.setOnClickListener(v -> {
-            String nameInput = ViewHolder.etName.getText().toString();
-            String passwordInput = ViewHolder.etPassword.getText().toString();
+        viewHolder.btnLogin.setOnClickListener(v -> {
+            String nameInput = viewHolder.etName.getText().toString();
+            String passwordInput = viewHolder.etPassword.getText().toString();
             Boolean isUsernameEmpty = nameInput.isEmpty();
             Boolean isPasswordEmpty = passwordInput.isEmpty();
 
@@ -164,7 +164,7 @@ public class LoginFragment extends Fragment {
                     // 设置边框闪烁动画
                     editTextController.startBorderWidthBlinkAnimation(
                             context,
-                            ViewHolder.etName,
+                            viewHolder.etName,
                             context.getColor(R.color.red),
                             0, 3, 8, 600, 3);
                 }
@@ -172,7 +172,7 @@ public class LoginFragment extends Fragment {
                     // 设置边框闪烁动画
                     editTextController.startBorderWidthBlinkAnimation(
                             context,
-                            ViewHolder.etPassword,
+                            viewHolder.etPassword,
                             context.getColor(R.color.red),
                             0, 3, 8, 600, 3);
                 }
@@ -195,15 +195,15 @@ public class LoginFragment extends Fragment {
                     LoginHandlerWhat);
         });
         // 点击注册，切换到注册 Fragment
-        ViewHolder.tvGoRegister.setOnClickListener(v -> {
+        viewHolder.tvGoRegister.setOnClickListener(v -> {
             if (switchListener != null) {
                 switchListener.switchToRegisterFragment();
             }
         });
         // 自动登录点击
-        ViewHolder.cbAutoLogin.setOnCheckedChangeListener((buttonView, isChecked) -> {
+        viewHolder.cbAutoLogin.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
-                ViewHolder.cbRememberPWD.setChecked(true);
+                viewHolder.cbRememberPWD.setChecked(true);
             }
         });
     }
@@ -215,7 +215,7 @@ public class LoginFragment extends Fragment {
         String aKey = getString(R.string.shared_preferences_auto_login_key);
         if (sharedPreferencesManager.have(nKey)) {
             String userName = sharedPreferencesManager.get(nKey);
-            ViewHolder.etName.setText(userName);
+            viewHolder.etName.setText(userName);
         }
         if (sharedPreferencesManager.have(rKey)) {
             boolean isRememberPWD = sharedPreferencesManager.getBoolean(rKey);
@@ -223,16 +223,16 @@ public class LoginFragment extends Fragment {
                 String pKey = getString(R.string.shared_preferences_password_key);
                 if (sharedPreferencesManager.have(pKey)) {
                     String password = sharedPreferencesManager.get(pKey);
-                    ViewHolder.etPassword.setText(password);
+                    viewHolder.etPassword.setText(password);
                 }
             }
-            ViewHolder.cbRememberPWD.setChecked(isRememberPWD);
+            viewHolder.cbRememberPWD.setChecked(isRememberPWD);
         }
         if (sharedPreferencesManager.have(aKey)) {
             boolean isAutoLogin = sharedPreferencesManager.getBoolean(aKey);
-            ViewHolder.cbAutoLogin.setChecked(isAutoLogin);
+            viewHolder.cbAutoLogin.setChecked(isAutoLogin);
             if (isAutoLogin) {
-                ViewHolder.btnLogin.performClick();
+                viewHolder.btnLogin.performClick();
             }
         }
     }
