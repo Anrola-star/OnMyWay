@@ -105,7 +105,7 @@ public class MyRequest {
             OutputStream outputStream = connection.getOutputStream();
             outputStream.write(Json.toString().getBytes(StandardCharsets.UTF_8));
             outputStream.flush();
-            outputStream.close();
+            //outputStream.close();
         } catch (Exception e) {
             Log.e(TAG, "doOutputStream: "+ e);
         }
@@ -174,14 +174,14 @@ public class MyRequest {
             try {
                 inputStream.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
         if (reader != null) {
             try {
                 reader.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
     }

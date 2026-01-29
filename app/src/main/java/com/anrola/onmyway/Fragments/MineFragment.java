@@ -47,6 +47,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class MineFragment extends Fragment {
 
@@ -67,7 +68,7 @@ public class MineFragment extends Fragment {
         private TextView tvWeek;
         private TextView tvMonth;
     }
-    private ViewHolder viewHolder = new ViewHolder();
+    private final ViewHolder viewHolder = new ViewHolder();
     private static class ChartData {
         private static final List<Entry> entriesWeek = new ArrayList<>();
         private static final List<String> xWeekLabels = new ArrayList<>();
@@ -90,13 +91,23 @@ public class MineFragment extends Fragment {
         private static String userPhone;
         private static int userAvatar;
     }
+    private static class Values {
+        private static boolean isWeekData = true; // 当前显示本周/本月数据
+        private static boolean isMonthDataGot = false;
+        private static final String TAG = "MineFragment";
+        private static final Object waitMonthDataLock = new Object();
+    }
+
     private Context context;
     private SharedPreferencesManager sharedPreferencesManager;
     private Handler handler;
     private final MyRequest myRequest = new MyRequest();
-    private boolean isWeekData = true; // 当前显示本周/本月数据
-    private boolean isMonthDataGetted = false;
-    private final String TAG = "MineFragment";
+
+
+
+
+
+
 
 
     @Nullable
@@ -118,11 +129,6 @@ public class MineFragment extends Fragment {
         requestUserData();
         // 设置点击事件
         setClickEvents();
-
-
-        // 加载用户数据
-        loadUserData();
-
 
         return view;
     }
@@ -151,7 +157,7 @@ public class MineFragment extends Fragment {
 
                 // 空数据处理
                 if (msg.obj == null) {
-                    Log.e(TAG, "JSON解析失败：响应字符串为空");
+                    Log.e(Values.TAG, "JSON解析失败：响应字符串为空");
                     AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
                     builder.setTitle("错误")
                             .setMessage("请求失败, 无响应")
@@ -180,8 +186,8 @@ public class MineFragment extends Fragment {
                                     ChartData.entriesWeek.add(new Entry(i, amount));
                                     ChartData.xWeekLabels.add("周" + String.valueOf(i + 1));
                                 }
-                                loadChartData(isWeekData, ChartData.entriesWeek, ChartData.xWeekLabels);
-                                Log.d(TAG, ChartData.entriesWeek.toString());
+                                loadChartData(Values.isWeekData, ChartData.entriesWeek, ChartData.xWeekLabels);
+                                Log.d(Values.TAG, ChartData.entriesWeek.toString());
                                 viewHolder.tvTodayIncome.setText(String.format("¥%s", ChartData.weekTotalIncome));
                             } else if (response.getInt("code") == 500) {
                                 Toast.makeText(getActivity(), "收入获取错误", Toast.LENGTH_SHORT).show();
@@ -203,9 +209,14 @@ public class MineFragment extends Fragment {
                                     ChartData.entriesMonth.add(new Entry(i, amount));
                                     ChartData.xMonthLabels.add(String.valueOf(i + 1) + "日");
                                 }
-                                Log.d(TAG, ChartData.entriesWeek.toString());
+                                Log.d(Values.TAG, ChartData.entriesWeek.toString());
                                 viewHolder.tvMonthIncome.setText(String.format("¥%s", ChartData.monthTotalIncome));
-                                isMonthDataGetted = true;
+
+                                //  唤醒等待月数据的线程
+                                synchronized (Values.waitMonthDataLock){
+                                    Values.isMonthDataGot = true;
+                                    Values.waitMonthDataLock.notify();
+                                }
                             } else if (response.getInt("code") == 500) {
                                 Toast.makeText(getActivity(), "收入获取错误", Toast.LENGTH_SHORT).show();
                             }
@@ -239,7 +250,7 @@ public class MineFragment extends Fragment {
                                 UserData.userAvatar = data.getInt("avatar");
                                 viewHolder.tvNickname.setText(UserData.userNickName);
                                 viewHolder.tvRiderId.setText(String.format("ID: %s", UserData.userId));
-                                AssetsAvatarManager avatarManager = new AssetsAvatarManager(getActivity());
+                                AssetsAvatarManager avatarManager = new AssetsAvatarManager(requireActivity());
                                 List<Bitmap> avatars = avatarManager.getAllAvatars();
                                 viewHolder.ivAvatar.setImageBitmap(avatars.get(UserData.userAvatar));
                             } else if (response.getInt("code") == 500) {
@@ -278,51 +289,58 @@ public class MineFragment extends Fragment {
 
         // 本周/本月切换
         viewHolder.tvWeek.setOnClickListener(v -> {
-            if (!isWeekData) {
-                isWeekData = true;
+            if (!Values.isWeekData) {
+                Values.isWeekData = true;
                 updateTabStyle();
-                loadChartData(isWeekData, ChartData.entriesWeek, ChartData.xWeekLabels);
+                loadChartData(Values.isWeekData, ChartData.entriesWeek, ChartData.xWeekLabels);
             }
         });
 
         viewHolder.tvMonth.setOnClickListener(v -> {
-            if (isWeekData) {
+            if (Values.isWeekData) {
 
-                if (!isMonthDataGetted){
+                if (!Values.isMonthDataGot){
                     requestChartData(false);
                     new Thread(() -> {
-                        while (!isMonthDataGetted){
-                            try {
-                                Thread.sleep(500);
-                            } catch (InterruptedException e) {
-                                throw new RuntimeException(e);
+                        // 等待月数据获取
+                        Log.i(Values.TAG, "等待月数据获取...");
+                        synchronized (Values.waitMonthDataLock){
+                            while (!Values.isMonthDataGot){
+                                try {
+                                    Values.waitMonthDataLock.wait();// 进入等待状态
+                                } catch (InterruptedException e) {
+                                    Thread.currentThread().interrupt();
+                                    throw new RuntimeException(e);
+                                }
                             }
                         }
-                        isWeekData = false;
+                        // 月数据获取完成
+                        Log.i(Values.TAG, "——月数据获取完成——");
+                        Values.isWeekData = false;
                         updateTabStyle();
-                        loadChartData(isWeekData, ChartData.entriesMonth, ChartData.xMonthLabels);
+                        loadChartData(Values.isWeekData, ChartData.entriesMonth, ChartData.xMonthLabels);
                     }).start();
                 }
 
-                isWeekData = false;
+                Values.isWeekData = false;
                 updateTabStyle();
-                loadChartData(isWeekData, ChartData.entriesMonth, ChartData.xMonthLabels);
+                loadChartData(Values.isWeekData, ChartData.entriesMonth, ChartData.xMonthLabels);
             }
         });
     }
 
     // 更新切换按钮样式（选中/未选中）
     private void updateTabStyle() {
-        if (isWeekData) {
-            viewHolder.tvWeek.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_light));
-            viewHolder.tvWeek.setTextColor(getResources().getColor(android.R.color.white));
-            viewHolder.tvMonth.setBackgroundColor(getResources().getColor(android.R.color.white));
-            viewHolder.tvMonth.setTextColor(getResources().getColor(android.R.color.darker_gray));
+        if (Values.isWeekData) {
+            viewHolder.tvWeek.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_light, null));
+            viewHolder.tvWeek.setTextColor(getResources().getColor(android.R.color.white, null));
+            viewHolder.tvMonth.setBackgroundColor(getResources().getColor(android.R.color.white, null));
+            viewHolder.tvMonth.setTextColor(getResources().getColor(android.R.color.darker_gray, null));
         } else {
-            viewHolder.tvMonth.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_light));
-            viewHolder.tvMonth.setTextColor(getResources().getColor(android.R.color.white));
-            viewHolder.tvWeek.setBackgroundColor(getResources().getColor(android.R.color.white));
-            viewHolder.tvWeek.setTextColor(getResources().getColor(android.R.color.darker_gray));
+            viewHolder.tvMonth.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_light, null));
+            viewHolder.tvMonth.setTextColor(getResources().getColor(android.R.color.white, null));
+            viewHolder.tvWeek.setBackgroundColor(getResources().getColor(android.R.color.white, null));
+            viewHolder.tvWeek.setTextColor(getResources().getColor(android.R.color.darker_gray, null));
         }
     }
 
@@ -354,7 +372,7 @@ public class MineFragment extends Fragment {
         // Y轴配置
         YAxis leftYAxis = viewHolder.incomeChart.getAxisLeft();
         leftYAxis.setDrawGridLines(true);
-        leftYAxis.setGridColor(getResources().getColor(android.R.color.darker_gray));
+        leftYAxis.setGridColor(getResources().getColor(android.R.color.darker_gray, null));
         viewHolder.incomeChart.getAxisRight().setEnabled(false); // 隐藏右侧Y轴
 
         // 禁用图表点击
@@ -400,11 +418,11 @@ public class MineFragment extends Fragment {
     private void loadChartData(boolean isWeek, List<Entry> entries, List<String> xLabels) {
         // 构建数据集
         LineDataSet dataSet = new LineDataSet(entries, "收益");
-        dataSet.setColor(getResources().getColor(android.R.color.holo_orange_dark)); // 折线颜色
-        dataSet.setCircleColor(getResources().getColor(android.R.color.holo_orange_dark)); // 节点颜色
+        dataSet.setColor(getResources().getColor(android.R.color.holo_orange_dark, null)); // 折线颜色
+        dataSet.setCircleColor(getResources().getColor(android.R.color.holo_orange_dark, null)); // 节点颜色
         dataSet.setCircleRadius(4f); // 节点大小
         dataSet.setDrawFilled(true); // 填充折线下方区域
-        dataSet.setFillColor(getResources().getColor(android.R.color.holo_orange_light)); // 填充颜色
+        dataSet.setFillColor(getResources().getColor(android.R.color.holo_orange_light, null)); // 填充颜色
         dataSet.setFillAlpha(80); // 填充透明度
         dataSet.setLineWidth(2f); // 折线宽度
 
@@ -421,9 +439,6 @@ public class MineFragment extends Fragment {
         viewHolder.incomeChart.invalidate(); // 刷新
     }
 
-    // 加载用户数据
-    private void loadUserData() {
-    }
 
     // 退出登录对话框
     private void showLogoutDialog() {
@@ -446,7 +461,7 @@ public class MineFragment extends Fragment {
         builder.setView(dialogView);
         AlertDialog dialog = builder.create();
 
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // 设置背景透明
+        Objects.requireNonNull(dialog.getWindow()).setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // 设置背景透明
 
         // 获取头像资源
         List<Bitmap> avatars = avatarManager.getAllAvatars();

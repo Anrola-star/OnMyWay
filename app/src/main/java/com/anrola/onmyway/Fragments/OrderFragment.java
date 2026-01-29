@@ -38,7 +38,7 @@ import java.util.List;
 
 public class OrderFragment extends Fragment {
     private Context context;
-    private MyRequest myRequest = new MyRequest();
+    private final MyRequest myRequest = new MyRequest();
     private Handler handler;
     private SharedPreferencesManager sharedPreferencesManager;
 
@@ -55,7 +55,7 @@ public class OrderFragment extends Fragment {
         private Button btnOrderSetting;
         private Button btnOrderRefresh;
     }
-    private ViewHolder viewHolder = new ViewHolder();
+    private final ViewHolder viewHolder = new ViewHolder();
 
     private static class Value {
 
@@ -170,9 +170,12 @@ public class OrderFragment extends Fragment {
                             JSONArray jsonArray = new JSONArray(msg.obj.toString());
                             acceptedOrderList = getOrderListByJSONArray(jsonArray);
                             orderListAdapter.updateData(acceptedOrderList);
+
+
                             MainActivity mainActivity = (MainActivity) requireActivity();
                             NavFragment navFragment = (NavFragment) mainActivity.getNavFragment();
                             navFragment.setAcceptedOrders(acceptedOrderList);
+                            navFragment.notifyDeliveryPlanLock();
                         } catch (JSONException e) {
                             Log.e(Value.TAG, "JSON解析失败：" + e.getMessage());
                         }
@@ -306,19 +309,6 @@ public class OrderFragment extends Fragment {
         String key = getString(R.string.shared_preferences_token_key);
         String token = sharedPreferencesManager.get(key);
         myRequest.get(url, handler, HandlerWhats.acceptOrderHandlerWhat, token);
-    }
-
-    private void startUpdateOrderDistance(ArrayList<Order> orderList) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for (Order order : orderList) {
-                    //TODO
-                    // 获取订单的经纬度
-                    // 计算订单距离
-                }
-            }
-        }).start();
     }
 
     private void pickUpOrder(String orderNo) {
