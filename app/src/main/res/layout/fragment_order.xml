@@ -41,15 +41,15 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="接单状态"
+                android:text="自动接单"
                 android:textColor="#333333"
-                android:textSize="14sp"/>
+                android:textSize="14sp" />
 
             <androidx.appcompat.widget.SwitchCompat
-                android:id="@+id/of_switch_online"
+                android:id="@+id/of_switch_auto_accept"
                 android:layout_width="50dp"
                 android:layout_height="40dp"
-                android:checked="true"
+                android:checked="false"
                 app:thumbTint="#2196F3"
                 app:trackTint="#E0E0E0" />
         </LinearLayout>
@@ -125,7 +125,7 @@
 
     <!-- 此处是 RecyclerView，用于绑定 OrderListAdapter -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/of_vp_order_list"
+        android:id="@+id/of_rv_order_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:paddingHorizontal="8dp"/>

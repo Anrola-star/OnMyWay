@@ -78,7 +78,7 @@ public class NavFragment extends Fragment {
         private CardView cvFloatTips;
     }
 
-    private final ViewHolder viewHolder = new ViewHolder();
+    private final ViewHolder ViewHolder = new ViewHolder();
 
     private static class Threads {
         public static Thread updateLocationThread;
@@ -107,27 +107,27 @@ public class NavFragment extends Fragment {
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        viewHolder.mapView.onSaveInstanceState(outState);
+        ViewHolder.mapView.onSaveInstanceState(outState);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        viewHolder.mapView.onDestroy();
+        ViewHolder.mapView.onDestroy();
     }
 
     @Override
     public void onLowMemory() {
         super.onLowMemory();
-        viewHolder.mapView.onLowMemory();
+        ViewHolder.mapView.onLowMemory();
     }
 
     @Override
     public void onPause() {
         super.onPause();
 
-        if (viewHolder.mapView != null) {
-            viewHolder.mapView.onPause();
+        if (ViewHolder.mapView != null) {
+            ViewHolder.mapView.onPause();
         }
     }
 
@@ -135,26 +135,26 @@ public class NavFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        if (viewHolder.mapView != null) {
-            viewHolder.mapView.onResume();
+        if (ViewHolder.mapView != null) {
+            ViewHolder.mapView.onResume();
         }
     }
 
     private void intiView(View view) {
         context = view.getContext();
-        viewHolder.tvSettings = view.findViewById(R.id.tv_setting);
-        viewHolder.tvMyOrders = view.findViewById(R.id.tv_my_orders);
-        viewHolder.btnFloat = view.findViewById(R.id.btn_close_float);
-        viewHolder.btnRight = view.findViewById(R.id.btn_right);
-        viewHolder.tvFloatText = view.findViewById(R.id.tv_float_text);
-        viewHolder.cvFloatTips = view.findViewById(R.id.cv_float_tips);
-        viewHolder.btnMyLocation = view.findViewById(R.id.btn_my_location);
+        ViewHolder.tvSettings = view.findViewById(R.id.tv_setting);
+        ViewHolder.tvMyOrders = view.findViewById(R.id.tv_my_orders);
+        ViewHolder.btnFloat = view.findViewById(R.id.btn_close_float);
+        ViewHolder.btnRight = view.findViewById(R.id.btn_right);
+        ViewHolder.tvFloatText = view.findViewById(R.id.tv_float_text);
+        ViewHolder.cvFloatTips = view.findViewById(R.id.cv_float_tips);
+        ViewHolder.btnMyLocation = view.findViewById(R.id.btn_my_location);
     }
 
     private void initMap(View view, Bundle savedInstanceState) {
 
-        viewHolder.mapView = view.findViewById(R.id.fn_map);
-        amapManager = new AMapManager(context, viewHolder.mapView);
+        ViewHolder.mapView = view.findViewById(R.id.fn_map);
+        amapManager = new AMapManager(context, ViewHolder.mapView);
 
         amapManager.initMap(context);
         amapManager.CreateMap(new AMapManager.onMapLoadFinishedListener() {
@@ -178,7 +178,7 @@ public class NavFragment extends Fragment {
     }
 
     private void setClickListener() {
-        viewHolder.tvSettings.setOnClickListener(new View.OnClickListener() {
+        ViewHolder.tvSettings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //TODO
@@ -187,13 +187,13 @@ public class NavFragment extends Fragment {
 
             }
         });
-        viewHolder.tvMyOrders.setOnClickListener(new View.OnClickListener() {
+        ViewHolder.tvMyOrders.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
             }
         });
 
-        viewHolder.btnFloat.setOnClickListener(new View.OnClickListener() {
+        ViewHolder.btnFloat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // 动画保留不会改变点击判定点，所以复用收起按钮
@@ -209,7 +209,7 @@ public class NavFragment extends Fragment {
                             Animation.RELATIVE_TO_PARENT, 0f, // fromYDelta：Y轴初始位置
                             Animation.RELATIVE_TO_PARENT, 0f  // toYDelta：Y轴最终位置
                     );
-                    viewHolder.btnRight.setVisibility(View.GONE);
+                    ViewHolder.btnRight.setVisibility(View.GONE);
                 } else {
                     Values.isShowFloatTips = false;
                     translate = new TranslateAnimation(
@@ -218,7 +218,7 @@ public class NavFragment extends Fragment {
                             Animation.RELATIVE_TO_PARENT, 0f, // fromYDelta：Y轴初始位置
                             Animation.RELATIVE_TO_PARENT, 0f  // toYDelta：
                     );
-                    viewHolder.btnRight.setVisibility(View.VISIBLE);
+                    ViewHolder.btnRight.setVisibility(View.VISIBLE);
                 }
 
                 animationSet.addAnimation(translate);
@@ -227,10 +227,10 @@ public class NavFragment extends Fragment {
                 animationSet.setInterpolator(new AccelerateInterpolator());
                 Anim = animationSet;
 
-                viewHolder.cvFloatTips.startAnimation(Anim);
+                ViewHolder.cvFloatTips.startAnimation(Anim);
             }
         });
-        viewHolder.btnMyLocation.setOnClickListener(new View.OnClickListener() {
+        ViewHolder.btnMyLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (!Values.isStartLocation) {
@@ -450,7 +450,7 @@ public class NavFragment extends Fragment {
         if (acceptedOrders.isEmpty()) { // 无订单, 请求订单
             MainActivity mainActivity = (MainActivity) requireActivity();
             OrderFragment orderFragment = (OrderFragment) mainActivity.getOrderFragment();
-            orderFragment.requestAcceptOrderInNavFragment();
+            orderFragment.requestAndUpdateAcceptOrderInNavFragment();
 
 
             new Thread(new Runnable() {
@@ -555,7 +555,7 @@ public class NavFragment extends Fragment {
         String action = isPickup ? "取单点" : "送达点";
 
         String text = String.format("正在前往 %s %s\n距离：%s 米", targetLocationText, action, distanceText);
-        viewHolder.tvFloatText.setText(text);
+        ViewHolder.tvFloatText.setText(text);
     }
 
 

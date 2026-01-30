@@ -79,7 +79,7 @@ public class AvatarSelectAdapter extends BaseAdapter {
         return convertView;
     }
 
-    static class ViewHolder {
+    private static class ViewHolder {
         ImageView ivAvatar;
         ImageView ivSelected;
     }

@@ -167,6 +167,15 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
         }
     }
 
+    public void updateOrderFinished(String orderNo, boolean isFinished) {
+        int position = getPositionByOderNo(orderNo);
+        if (position >= 0 && position < orderList.size()) {
+            Order updatedOrder = orderList.get(position);
+            updatedOrder.setFinished(isFinished);
+            notifyItemChanged(position);
+        }
+    }
+
     public static class OrderViewHolder extends RecyclerView.ViewHolder {
         // 订单控件
         TextView tvOrderId;
@@ -241,6 +250,10 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
         this.onPickOrderClickListener = listener;
     }
 
+    public void setOnDoneOrderClickListener(OnDoneOrderClickListener listener) {
+        this.onDoneOrderClickListener = listener;
+    }
+
     public int getPositionByOderNo(String orderNo) {
         for (int i = 0; i < orderList.size(); i++) {
             Order order = orderList.get(i);
@@ -249,5 +262,14 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
             }
         }
         return -1;
+    }
+
+    public Order getOrderByOderNo(String orderNo) {
+        for (Order order : orderList) {
+            if (order.getNo().equals(orderNo)) {
+                return order;
+            }
+        }
+        return null;
     }
 }

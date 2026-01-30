@@ -33,9 +33,9 @@
     </string-array>
 
     <string-array name="fo_auto_accept_priority">
+        <item>时间优先</item>
         <item>距离优先</item>
         <item>金额优先</item>
-        <item>时间优先</item>
     </string-array>
 
 
