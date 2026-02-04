@@ -1,5 +1,9 @@
 package com.anrola.onmyway.Entity;
 
+import com.amap.api.maps.model.LatLng;
+import com.anrola.onmyway.Utils.DrivingRouteOverlay;
+
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.Serializable;
@@ -29,7 +33,7 @@ public class Order implements Serializable {
                  String receiverName, String receiverMobile,
                  String receiverProvince, String receiverCity, String receiverDistrict, String receiverAddress,
                  JSONObject startLocation, JSONObject endLocation,
-                 int distance, int amount,
+                 int amount,
                  String startTime, String requireTime,
                  boolean isAccepted, boolean isPickup, boolean isFinished) {
         this.no = no;
@@ -42,7 +46,21 @@ public class Order implements Serializable {
         this.receiverAddress = receiverAddress;
         this.startLocation = startLocation;
         this.endLocation = endLocation;
-        this.distance = distance;
+
+        LatLng startLatLng = new LatLng(0, 0);
+        LatLng endLatLng = new LatLng(0, 0);
+        try {
+            startLatLng = new LatLng(
+                    startLocation.getDouble("latitude"),
+                    startLocation.getDouble("longitude"));
+            endLatLng = new LatLng(
+                    endLocation.getDouble("latitude"),
+                    endLocation.getDouble("longitude"));
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+        this.distance = getDistanceByLocation(startLatLng, endLatLng);
         this.amount = amount;
         this.startTime = startTime;
         this.requireTime = requireTime;
@@ -62,13 +80,32 @@ public class Order implements Serializable {
         this.receiverAddress = order.receiverAddress;
         this.startLocation = order.startLocation;
         this.endLocation = order.endLocation;
-        this.distance = order.distance;
+
+        LatLng startLatLng = new LatLng(0, 0);
+        LatLng endLatLng = new LatLng(0, 0);
+        try {
+            startLatLng = new LatLng(
+                    order.getStartLocation().getDouble("latitude"),
+                    order.getStartLocation().getDouble("longitude"));
+            endLatLng = new LatLng(
+                    order.getEndLocation().getDouble("latitude"),
+                    order.getEndLocation().getDouble("longitude"));
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+        this.distance = getDistanceByLocation(startLatLng, endLatLng);
         this.amount = order.amount;
         this.startTime = order.startTime;
         this.requireTime = order.requireTime;
         this.isAccepted = order.isAccepted;
         this.isPickUp = order.isPickUp;
         this.isFinished = order.isFinished;
+    }
+
+    public int getDistanceByLocation(LatLng startLocation, LatLng endLocation){
+
+        return distance = DrivingRouteOverlay.calculateDistance(startLocation, endLocation);
     }
 
     public String getNo() {

@@ -32,6 +32,7 @@ import com.anrola.onmyway.Interface.OnLoginFragmentSwitchListener;
 import com.anrola.onmyway.Utils.EditTextController;
 import com.anrola.onmyway.Utils.MyRequest;
 import com.anrola.onmyway.Utils.SharedPreferencesManager;
+import com.anrola.onmyway.Utils.ToastManager;
 
 public class LoginFragment extends Fragment {
 
@@ -105,7 +106,7 @@ public class LoginFragment extends Fragment {
                 // 空数据处理
                 if (msg.obj == null) {
                     Log.e(TAG, "JSON解析失败：响应字符串为空");
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                    AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
                     builder.setTitle("错误")
                             .setMessage("请求失败, 无响应")
                             .setPositiveButton("确定", null)
@@ -120,7 +121,7 @@ public class LoginFragment extends Fragment {
                     try {
                         response = new JSONObject((String) msg.obj);
                         if (response.getInt("code") == 200) {
-                            Toast.makeText(getActivity(), "登录成功", Toast.LENGTH_SHORT).show();
+                            ToastManager.showToast(context, "登录成功", Toast.LENGTH_SHORT);
 
                             String tKey = getString(R.string.shared_preferences_token_key);
                             String nKey = getString(R.string.shared_preferences_user_name_key);
@@ -138,10 +139,10 @@ public class LoginFragment extends Fragment {
                                 sharedPreferencesManager.save(pKey, viewHolder.etPassword.getText().toString());
                             }
 
-                            Intent intent = new Intent(getActivity(), MainActivity.class);
+                            Intent intent = new Intent(requireActivity(), MainActivity.class);
                             startActivity(intent);
                         } else if (response.getInt("code") == 500) {
-                            Toast.makeText(getActivity(), "用户名或密码错误", Toast.LENGTH_SHORT).show();
+                            ToastManager.showToast(context, "用户名或密码错误", Toast.LENGTH_SHORT);
                         }
                     } catch (JSONException e) {
                         throw new RuntimeException(e);
@@ -159,7 +160,7 @@ public class LoginFragment extends Fragment {
             Boolean isPasswordEmpty = passwordInput.isEmpty();
 
             if (isUsernameEmpty || isPasswordEmpty) { // 密码或账号为空
-                Toast.makeText(getActivity(), "请填写用户名和密码", Toast.LENGTH_SHORT).show();
+                ToastManager.showToast(context, "请填写用户名和密码", Toast.LENGTH_SHORT);
                 if (isUsernameEmpty) {   // 用户名为空
                     // 设置边框闪烁动画
                     editTextController.startBorderWidthBlinkAnimation(

@@ -94,7 +94,6 @@ public class IndexActivity extends AppCompatActivity {
                                     jsonObject.getString("receiverAddress"),
                                     jsonObject.getJSONObject("startLocation"),
                                     jsonObject.getJSONObject("endLocation"),
-                                    jsonObject.getInt("distance"),
                                     jsonObject.getInt("amount"),
                                     jsonObject.getString("startTime"),
                                     jsonObject.getString("requireTime"),
@@ -104,8 +103,6 @@ public class IndexActivity extends AppCompatActivity {
                             );
                             acceptedOrderList.add(order);
                         }
-
-
                     } catch (JSONException e) {
                         throw new RuntimeException(e);
                     }

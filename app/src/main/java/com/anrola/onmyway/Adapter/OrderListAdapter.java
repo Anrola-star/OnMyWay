@@ -1,6 +1,9 @@
 package com.anrola.onmyway.Adapter;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,28 +13,33 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.amap.api.maps.model.LatLng;
-import com.amap.api.services.core.LatLonPoint;
 import com.anrola.onmyway.Entity.Order;
 import com.anrola.onmyway.R;
-import com.anrola.onmyway.Utils.DrivingRouteOverlay;
 
 import org.json.JSONException;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 订单列表适配器（适配 RecyclerView，用于 ViewPager2 承载）
  */
 public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.OrderViewHolder> {
 
-    private Context context;
+    private final Context context;
     private List<Order> orderList;
+
+    private final String TAG = "OrderListAdapter";
+
     // 接单按钮点击事件回调
     private OnTakeOrderClickListener onTakeOrderClickListener;
     private OnPickOrderClickListener onPickOrderClickListener;
     private OnDoneOrderClickListener onDoneOrderClickListener;
+
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private Runnable refreshItemRunnable;
 
     // 构造方法
     public OrderListAdapter(Context context, List<Order> orderList) {
@@ -50,11 +58,13 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
 
     @Override
     public void onBindViewHolder(@NonNull OrderViewHolder holder, int position) {
-        // 获取当前位置的订单数据
         Order currentOrder = orderList.get(position);
+        // 订单为空
         if (currentOrder == null) {
             return;
         }
+
+        // 展示订单
         String startLocationName = "";
         String endLocationName = "";
         try {
@@ -71,20 +81,7 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
         holder.tvOrderTime.setText(currentOrder.getStartTime());
         holder.tvOrderPublisher.setText(String.format("接收人：%s", currentOrder.getReceiverName()));
         holder.tvOrderFromAndTo.setText(String.format("从 %s 到 %s", startLocationName, endLocationName));
-        LatLng startLocation = new LatLng(0, 0);
-        LatLng endLocation = new LatLng(0, 0);
-        try {
-            startLocation = new LatLng(
-                    currentOrder.getStartLocation().getDouble("latitude"),
-                    currentOrder.getStartLocation().getDouble("longitude"));
-            endLocation = new LatLng(
-                    currentOrder.getEndLocation().getDouble("latitude"),
-                    currentOrder.getEndLocation().getDouble("longitude"));
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
-        int distance = DrivingRouteOverlay.calculateDistance(startLocation, endLocation);
-        holder.tvOrderDistance.setText(String.format("距离：%s 米", distance));
+        holder.tvOrderDistance.setText(String.format("距离：%s 米", currentOrder.getDistance()));
 
         if (currentOrder.isAccepted()) {
             if (currentOrder.isPickup()) {
@@ -115,19 +112,22 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
         // 接单按钮点击事件
         holder.btnTakeOrder.setOnClickListener(v -> {
             if (onTakeOrderClickListener != null) {
-                onTakeOrderClickListener.onTakeOrderClick(position, currentOrder);
+                int realPosition = getPositionByOderNo(currentOrder.getNo());
+                onTakeOrderClickListener.onTakeOrderClick(realPosition, currentOrder);
             }
         });
         // 取货按钮点击事件
         holder.btnPickOrder.setOnClickListener(v -> {
             if (onPickOrderClickListener != null) {
-                onPickOrderClickListener.onPickOrderClick(position, currentOrder);
+                int realPosition = getPositionByOderNo(currentOrder.getNo());
+                onPickOrderClickListener.onPickOrderClick(realPosition, currentOrder);
             }
         });
         // 送达按钮点击事件
         holder.btnDoneOrder.setOnClickListener(v -> {
             if (onDoneOrderClickListener != null) {
-                onDoneOrderClickListener.onDoneOrderClick(position, currentOrder);
+                int realPosition = getPositionByOderNo(currentOrder.getNo());
+                onDoneOrderClickListener.onDoneOrderClick(realPosition, currentOrder);
             }
         });
     }
@@ -137,43 +137,67 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
         return orderList == null ? 0 : orderList.size();
     }
 
-    public void updateData(List<Order> newOrderList) {
-        this.orderList = newOrderList;
-        notifyDataSetChanged(); // 通知列表数据刷新
+    @Override
+    public void onViewRecycled(@NonNull OrderViewHolder holder) {
+        super.onViewRecycled(holder);
+        resetViewHolder(holder);
     }
 
-    public void removeOrder(int position) {
-        if (orderList != null && position >= 0 && position < orderList.size()) {
-            orderList.remove(position);
-            notifyItemRemoved(position);
+    public void updateData(List<Order> newOrderList) {
+        int oldSize = this.orderList == null ? 0 : this.orderList.size();
+        this.orderList.clear();
+        if (newOrderList != null) {
+            this.orderList.addAll(newOrderList);
+        }
+        int newSize = this.orderList.size();
+
+        if (oldSize > 0) {
+            notifyItemRangeRemoved(0, oldSize);
+        }
+        if (newSize > 0) {
+            notifyItemRangeInserted(0, newSize);
         }
     }
 
-    public void updateOrderAccepted(String orderNo, boolean isAccepted) {
+    public void updateOrderToAccepted(String orderNo, boolean isAccepted) {
         int position = getPositionByOderNo(orderNo);
         if (position >= 0 && position < orderList.size()) {
             Order updatedOrder = orderList.get(position);
             updatedOrder.setAccepted(isAccepted);
-            notifyItemChanged(position);
         }
     }
 
-    public void updateOrderPicked(String orderNo, boolean isPicked) {
+    public void updateOrderToPicked(String orderNo, boolean isPicked) {
         int position = getPositionByOderNo(orderNo);
         if (position >= 0 && position < orderList.size()) {
             Order updatedOrder = orderList.get(position);
             updatedOrder.setPickup(isPicked);
-            notifyItemChanged(position);
         }
     }
 
-    public void updateOrderFinished(String orderNo, boolean isFinished) {
+    public void updateOrderToFinished(String orderNo, boolean isFinished) {
         int position = getPositionByOderNo(orderNo);
         if (position >= 0 && position < orderList.size()) {
             Order updatedOrder = orderList.get(position);
             updatedOrder.setFinished(isFinished);
-            notifyItemChanged(position);
         }
+    }
+
+    public void resetViewHolder(OrderViewHolder holder){
+        holder.tvOrderId.setText("");
+        holder.tvOrderTitle.setText("");
+        holder.tvOrderAmount.setText("");
+        holder.tvOrderTime.setText("");
+        holder.tvOrderPublisher.setText("");
+        holder.tvOrderFromAndTo.setText("");
+        holder.tvOrderDistance.setText("");
+        holder.tvOrderStatus.setText("");
+        holder.btnTakeOrder.setVisibility(View.GONE);
+        holder.btnPickOrder.setVisibility(View.GONE);
+        holder.btnDoneOrder.setVisibility(View.GONE);
+        holder.btnTakeOrder.setOnClickListener(null);
+        holder.btnPickOrder.setOnClickListener(null);
+        holder.btnDoneOrder.setOnClickListener(null);
     }
 
     public static class OrderViewHolder extends RecyclerView.ViewHolder {
@@ -239,33 +263,46 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
         void onDoneOrderClick(int position, Order order);
     }
 
-    /**
-     * 设置接单按钮点击事件
-     */
+    public void setOrderList(List<Order> orderList) {
+        this.orderList = orderList;
+    }
     public void setOnTakeOrderClickListener(OnTakeOrderClickListener listener) {
         this.onTakeOrderClickListener = listener;
     }
-
     public void setOnPickOrderClickListener(OnPickOrderClickListener listener) {
         this.onPickOrderClickListener = listener;
     }
-
     public void setOnDoneOrderClickListener(OnDoneOrderClickListener listener) {
         this.onDoneOrderClickListener = listener;
     }
+    public OnTakeOrderClickListener getOnTakeOrderClickListener() {
+        return onTakeOrderClickListener;
+    }
 
+    public OnPickOrderClickListener getOnPickOrderClickListener() {
+        return onPickOrderClickListener;
+    }
+
+    public OnDoneOrderClickListener getOnDoneOrderClickListener() {
+        return onDoneOrderClickListener;
+    }
     public int getPositionByOderNo(String orderNo) {
         for (int i = 0; i < orderList.size(); i++) {
             Order order = orderList.get(i);
+            if(order ==  null){
+                continue;
+            }
             if (order.getNo().equals(orderNo)) {
                 return i;
             }
         }
         return -1;
     }
-
     public Order getOrderByOderNo(String orderNo) {
         for (Order order : orderList) {
+            if (order ==  null){
+                continue;
+            }
             if (order.getNo().equals(orderNo)) {
                 return order;
             }

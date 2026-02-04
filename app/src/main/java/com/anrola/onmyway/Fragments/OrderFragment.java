@@ -14,12 +14,14 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -29,6 +31,7 @@ import com.anrola.onmyway.Entity.Order;
 import com.anrola.onmyway.R;
 import com.anrola.onmyway.Utils.MyRequest;
 import com.anrola.onmyway.Utils.SharedPreferencesManager;
+import com.anrola.onmyway.Utils.ToastManager;
 import com.google.android.material.tabs.TabLayout;
 
 import org.json.JSONArray;
@@ -62,7 +65,7 @@ public class OrderFragment extends Fragment {
 
     ViewHolder viewHolder = new ViewHolder();
 
-    private static class Values {
+    public static class Values {
 
         private static final String TAG = "OrderFragment";
         private static String baseURL;
@@ -74,7 +77,15 @@ public class OrderFragment extends Fragment {
         private static int sortIndex = 0;
         private static boolean isAutoAccept = false;
 
+        private static int orderMaxDistance = 1000;
+        private static int orderMinAmount = 1;
         private static int autoAcceptMax = 1;
+        /**
+         * 自动接单优先级
+         * 0: 时间优先，1: 距离优先，2: 金额优先
+         */
+        private static int autoAcceptPriority = 0;
+
     }
 
     private static class HandlerWhats {
@@ -84,6 +95,10 @@ public class OrderFragment extends Fragment {
         private static final int pickUpOrderHandlerWhat = 4;
         private static final int getAcceptedOrderHandlerWhat = 5;
         private static final int doneOrderHandlerWhat = 6;
+    }
+
+    public OrderFragment(Context context) {
+        this.context = context;
     }
 
     @Override
@@ -138,7 +153,9 @@ public class OrderFragment extends Fragment {
         viewHolder.rvOrderList.setLayoutManager(linearLayoutManager);
 
         // 初始化适配器并绑定
-        orderListAdapter = new OrderListAdapter(getContext(), unacceptedOrderList);
+        orderListAdapter = new OrderListAdapter(
+                getContext(), unacceptedOrderList);
+
         viewHolder.rvOrderList.setAdapter(orderListAdapter);
 
         // 设置接单按钮点击事件
@@ -152,6 +169,7 @@ public class OrderFragment extends Fragment {
         // 订单完成按钮点击事件
         orderListAdapter.setOnDoneOrderClickListener((position, order) -> {
             requestFinishOrder(order.getNo());
+
         });
     }
 
@@ -164,7 +182,7 @@ public class OrderFragment extends Fragment {
                 // 空数据处理
                 if (msg.obj == null) {
                     Log.e(Values.TAG, "JSON解析失败：响应字符串为空");
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                    AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
                     builder.setTitle("错误")
                             .setMessage("请求失败, 无响应")
                             .setPositiveButton("确定", null)
@@ -178,8 +196,9 @@ public class OrderFragment extends Fragment {
                     case HandlerWhats.getAndUpdateUnAcceptedOrderHandlerWhat: // 获取并更新未接单订单
                         try {
                             JSONArray jsonArray = new JSONArray(msg.obj.toString());
-                            unacceptedOrderList = getOrderListByJSONArray(jsonArray);
+                            unacceptedOrderList = getOrderListByJSONArray(jsonArray, false);
                             orderListAdapter.updateData(unacceptedOrderList);
+
                         } catch (JSONException e) {
                             Log.e(Values.TAG, "JSON解析失败：" + e.getMessage());
                         }
@@ -187,16 +206,15 @@ public class OrderFragment extends Fragment {
                     case HandlerWhats.getAndUpdateAcceptedOrderHandlerWhat: // 获取并更新已接单订单
                         try {
                             JSONArray jsonArray = new JSONArray(msg.obj.toString());
-                            acceptedOrderList = getOrderListByJSONArray(jsonArray);
+                            acceptedOrderList = getOrderListByJSONArray(jsonArray, true);
                             orderListAdapter.updateData(acceptedOrderList);
-
 
                             Values.isReceivedOrderGot = true;
 
-                            MainActivity mainActivity = (MainActivity) requireActivity();
+                            MainActivity mainActivity = (MainActivity) context;
                             NavFragment navFragment = (NavFragment) mainActivity.getNavFragment();
                             navFragment.setAcceptedOrders(acceptedOrderList);
-                            navFragment.notifyDeliveryPlanLock();
+                            navFragment.notifyWaitOrderRequestLock();
                         } catch (JSONException e) {
                             Log.e(Values.TAG, "JSON解析失败：" + e.getMessage());
                         }
@@ -205,12 +223,28 @@ public class OrderFragment extends Fragment {
                         try {
                             JSONObject jsonObject = new JSONObject(msg.obj.toString());
                             String orderNo = jsonObject.getString("data");
-                            Toast.makeText(getContext(), jsonObject.getString("msg"), Toast.LENGTH_SHORT).show();
+                            ToastManager.showToast(requireActivity(), jsonObject.getString("msg"), Toast.LENGTH_SHORT);
 
-                            int position = orderListAdapter.getPositionByOderNo(orderNo);
-                            orderListAdapter.removeOrder(position);
-                            acceptedOrderList.add(orderListAdapter.getOrderByOderNo(orderNo));
+                            if (jsonObject.getInt("code") != 200){
+                                break;
+                            }
 
+                            if (Values.isUnreceivedOrderPage){
+                                acceptedOrderList.add(getOrderByOderNo(unacceptedOrderList, orderNo));
+                                unacceptedOrderList.remove(getOrderByOderNo(unacceptedOrderList, orderNo));
+                                orderListAdapter.setOrderList(unacceptedOrderList);
+                                orderListAdapter.notifyItemRemoved(orderListAdapter.getPositionByOderNo(orderNo));
+                            }else {
+                                acceptedOrderList.add(getOrderByOderNo(unacceptedOrderList, orderNo));
+                                unacceptedOrderList.remove(getOrderByOderNo(unacceptedOrderList, orderNo));
+                                orderListAdapter.setOrderList(acceptedOrderList);
+                                orderListAdapter.updateOrderToAccepted(orderNo, true);
+                                orderListAdapter.notifyItemInserted(orderListAdapter.getPositionByOderNo(orderNo));
+                            }
+
+                            MainActivity mainActivity = (MainActivity) context;
+                            NavFragment navFragment = (NavFragment) mainActivity.getNavFragment();
+                            navFragment.notifyWaitRouteRePlanLock();
                         } catch (JSONException e) {
                             Log.e(Values.TAG, "JSON解析失败：" + e.getMessage());
                         }
@@ -219,8 +253,20 @@ public class OrderFragment extends Fragment {
                         try {
                             JSONObject jsonObject = new JSONObject(msg.obj.toString());
                             String orderNo = jsonObject.getString("data");
-                            Toast.makeText(getContext(), jsonObject.getString("msg"), Toast.LENGTH_SHORT).show();
-                            orderListAdapter.updateOrderPicked(orderNo, true);
+                            ToastManager.showToast(requireActivity(), jsonObject.getString("msg"), Toast.LENGTH_SHORT);
+
+
+                            if (!Values.isUnreceivedOrderPage){
+                                orderListAdapter.updateOrderToPicked(orderNo, true);
+                                int position = orderListAdapter.getPositionByOderNo(orderNo);
+                                orderListAdapter.notifyItemChanged(position);
+                            }
+
+
+                            MainActivity mainActivity = (MainActivity) context;
+                            NavFragment navFragment = (NavFragment) mainActivity.getNavFragment();
+                            navFragment.notifyWaitRouteRePlanLock();
+
                         } catch (JSONException e) {
                             Log.e(Values.TAG, "JSON解析失败：" + e.getMessage());
                         }
@@ -228,12 +274,16 @@ public class OrderFragment extends Fragment {
                     case HandlerWhats.getAcceptedOrderHandlerWhat:  // 获取已接单订单
                         try {
                             JSONArray jsonArray = new JSONArray(msg.obj.toString());
-                            acceptedOrderList = getOrderListByJSONArray(jsonArray);
+                            acceptedOrderList = getOrderListByJSONArray(jsonArray, true);
                             Values.isReceivedOrderGot = true;
                             // 唤醒
                             synchronized (Values.waitReceivedOrderGotLock) {
                                 Values.waitReceivedOrderGotLock.notifyAll();
                             }
+                            MainActivity mainActivity = (MainActivity) context;
+                            NavFragment navFragment = (NavFragment) mainActivity.getNavFragment();
+                            navFragment.setAcceptedOrders(acceptedOrderList);
+                            navFragment.notifyWaitOrderRequestLock();
                         } catch (JSONException e) {
                             Log.e(Values.TAG, "JSON解析失败：" + e.getMessage());
                         }
@@ -242,10 +292,24 @@ public class OrderFragment extends Fragment {
                         try {
                             JSONObject jsonObject = new JSONObject(msg.obj.toString());
                             String orderNo = jsonObject.getString("data");
-                            Toast.makeText(getContext(), jsonObject.getString("msg"), Toast.LENGTH_SHORT).show();
-                            orderListAdapter.updateOrderFinished(orderNo, true);
-                            orderListAdapter.getPositionByOderNo(orderNo);
-                            orderListAdapter.removeOrder(orderListAdapter.getPositionByOderNo(orderNo));
+                            ToastManager.showToast(requireActivity(), jsonObject.getString("msg"), Toast.LENGTH_SHORT);
+
+                            if (jsonObject.getInt("code") != 200){
+                                break;
+                            }
+
+                            if (!Values.isUnreceivedOrderPage){
+                                orderListAdapter.updateOrderToFinished(orderNo, true);
+                                int position = orderListAdapter.getPositionByOderNo(orderNo);
+                                acceptedOrderList.remove(position);
+                                orderListAdapter.setOrderList(acceptedOrderList);
+                                orderListAdapter.notifyItemRemoved(position);
+                            }
+
+                            MainActivity mainActivity = (MainActivity) context;
+                            NavFragment navFragment = (NavFragment) mainActivity.getNavFragment();
+                            navFragment.notifyWaitRouteRePlanLock();
+                            restartAutoAcceptOrder();   // 重新启动自动接单
                         } catch (JSONException e) {
                             Log.e(Values.TAG, "JSON解析失败：" + e.getMessage());
                         }
@@ -254,7 +318,9 @@ public class OrderFragment extends Fragment {
             }
         };
     }
+
     private void setClickListener() {
+        // 订单类型切换（未接单，已接单）
         viewHolder.tabOrderType.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
@@ -279,12 +345,28 @@ public class OrderFragment extends Fragment {
 
             }
         });
+        // 订单排序（时间，距离，金额）
         viewHolder.spinnerSort.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Values.sortIndex = position;
-                unacceptedOrderList.clear();
-                requestAndUpdateOrder(Values.isUnreceivedOrderPage, Values.sortIndex);
+                unacceptedOrderList.sort(new Comparator<Order>() {
+                    @Override
+                    public int compare(Order o1, Order o2) {
+                        switch (position) {
+                            case 0:
+                                return o1.getStartTime().compareTo(o2.getStartTime());
+                            case 1:
+                                return o1.getDistance() - o2.getDistance();
+                            case 2:
+                                return o2.getAmount() - o1.getAmount();
+                        }
+                        return o1.getStartTime().compareTo(o2.getStartTime());
+                    }
+                });
+
+                orderListAdapter.notifyItemRangeChanged(0, unacceptedOrderList.size());
+
             }
 
             @Override
@@ -292,6 +374,7 @@ public class OrderFragment extends Fragment {
 
             }
         });
+        // 订单设置
         viewHolder.btnOrderSetting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -299,6 +382,7 @@ public class OrderFragment extends Fragment {
 
             }
         });
+        // 自动接单切换
         viewHolder.swAutoAccept.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -310,6 +394,7 @@ public class OrderFragment extends Fragment {
             }
         });
     }
+
     private void showOrderSettingDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(null);
@@ -318,10 +403,14 @@ public class OrderFragment extends Fragment {
         View dialogView = LayoutInflater.from(context).inflate(R.layout.fo_dialog_order_setting, null);
 
         Button btnSaveSetting = dialogView.findViewById(R.id.btn_save_setting);
-        Spinner spinnerAmount = dialogView.findViewById(R.id.fo_spinner_amount);
-        Spinner spinnerDistance = dialogView.findViewById(R.id.fo_spinner_distance);
-        Spinner spinnerAutoAcceptMax = dialogView.findViewById(R.id.fo_spinner_auto_accept_max);
-        Spinner spinnerAutoAcceptPriority = dialogView.findViewById(R.id.fo_spinner_auto_accept_priority);
+        EditText etAmount = dialogView.findViewById(R.id.fo_et_min_amount);
+        EditText etDistance = dialogView.findViewById(R.id.fo_et_max_distance);
+        EditText etAutoAcceptMax = dialogView.findViewById(R.id.fo_et_auto_accept_max);
+        Spinner spinnerAutoAcceptPriority = dialogView.findViewById(R.id.fo_et_auto_accept_priority);
+
+        etAmount.setText(String.valueOf(Values.orderMinAmount));
+        etDistance.setText(String.valueOf(Values.orderMaxDistance));
+        etAutoAcceptMax.setText(String.valueOf(Values.autoAcceptMax));
 
 
         builder.setView(dialogView);
@@ -329,13 +418,26 @@ public class OrderFragment extends Fragment {
         dialog.setCancelable(false); // 禁止返回键取消
         dialog.setCanceledOnTouchOutside(false); // 禁止点击空白处取消
 
-
+        // 保存设置
         btnSaveSetting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //TODO: 保存设置
 
-                Values.autoAcceptMax = Integer.parseInt(spinnerAutoAcceptMax.getSelectedItem().toString());
+                int newAutoAcceptMax = Integer.parseInt(etAutoAcceptMax.getText().toString());
+                int newOrderMinAmount = Integer.parseInt(etAmount.getText().toString());
+                int newOrderMaxDistance = Integer.parseInt(etDistance.getText().toString());
+                boolean isAutoAcceptMaxChanged = newAutoAcceptMax != Values.autoAcceptMax;
+                boolean isOrderMinAmountChanged = newOrderMinAmount != Values.orderMinAmount;
+                boolean isOrderMaxDistanceChanged = newOrderMaxDistance != Values.orderMaxDistance;
+
+                // 设置被改变
+                if (isAutoAcceptMaxChanged || isOrderMinAmountChanged || isOrderMaxDistanceChanged) {
+                    Values.autoAcceptMax = newAutoAcceptMax;
+                    Values.autoAcceptPriority = spinnerAutoAcceptPriority.getSelectedItemPosition();
+                    Values.orderMinAmount = newOrderMinAmount;
+                    Values.orderMaxDistance = newOrderMaxDistance;
+                    requestAndUpdateOrder(true, Values.sortIndex);
+                }
 
                 dialog.dismiss();
             }
@@ -346,7 +448,9 @@ public class OrderFragment extends Fragment {
 
     public void requestAndUpdateOrder(boolean isUnreceivedOrderPage, int orderBy) {
         if (isUnreceivedOrderPage) {
-            String url = Values.baseURL + "/order/all/unaccepted?" + "orderBy=" + orderBy;
+            String attribute1 = "orderBy=" + orderBy;
+            String attribute2 = "&minAmount=" + Values.orderMinAmount;
+            String url = Values.baseURL + "/order/all/unaccepted?" + attribute1 + attribute2;
             myRequest.get(url, handler, HandlerWhats.getAndUpdateUnAcceptedOrderHandlerWhat);
         } else {
             String url = Values.baseURL + "/order/all/accepted?" + "orderBy=" + orderBy;
@@ -360,8 +464,8 @@ public class OrderFragment extends Fragment {
         viewHolder.tabOrderType.selectTab(viewHolder.tabOrderType.getTabAt(1));
     }
 
-    private void requestAcceptedOrder(int orderBy) {
-        String url = Values.baseURL + "/order/all/accepted?" + "orderBy=" + orderBy;
+    public void requestAcceptedOrder() {
+        String url = Values.baseURL + "/order/all/accepted?" + "orderBy=" + Values.sortIndex;
         String key = getString(R.string.shared_preferences_token_key);
         String token = sharedPreferencesManager.get(key);
         myRequest.get(url, handler, HandlerWhats.getAcceptedOrderHandlerWhat, token);
@@ -389,7 +493,7 @@ public class OrderFragment extends Fragment {
         myRequest.get(url, handler, HandlerWhats.doneOrderHandlerWhat, token);
     }
 
-    private List<Order> getOrderListByJSONArray(JSONArray jsonArray) {
+    private List<Order> getOrderListByJSONArray(JSONArray jsonArray, boolean ignoreDistance) {
         List<Order> orderList = new ArrayList<>();
         try {
             for (int i = 0; i < jsonArray.length(); i++) {
@@ -405,7 +509,6 @@ public class OrderFragment extends Fragment {
                         jsonObject.getString("receiverAddress"),
                         jsonObject.getJSONObject("startLocation"),
                         jsonObject.getJSONObject("endLocation"),
-                        jsonObject.getInt("distance"),
                         jsonObject.getInt("amount"),
                         jsonObject.getString("startTime"),
                         jsonObject.getString("requireTime"),
@@ -413,6 +516,11 @@ public class OrderFragment extends Fragment {
                         jsonObject.getBoolean("isPickUp"),
                         jsonObject.getBoolean("isFinished")
                 );
+
+                if (!ignoreDistance && !isInsideDistance(order)) {
+                    continue;
+                }
+
                 orderList.add(order);
             }
             return orderList;
@@ -421,10 +529,15 @@ public class OrderFragment extends Fragment {
         }
     }
 
+    private boolean isInsideDistance(Order order) {
+        return order.getDistance() <= Values.orderMaxDistance;
+    }
+
     private void startAutoAcceptOrder() {
         Values.isAutoAccept = true;
 
 
+        //TODO: 重写为Runnable和handler
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -434,7 +547,7 @@ public class OrderFragment extends Fragment {
                     // 等待请求接收订单
                     Log.i(Values.TAG, "等待请求已接单...");
 
-                    requestAcceptedOrder(Values.sortIndex);
+                    requestAcceptedOrder();
 
                     synchronized (Values.waitReceivedOrderGotLock) {
                         while (!Values.isReceivedOrderGot) {
@@ -459,13 +572,13 @@ public class OrderFragment extends Fragment {
                         requireActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(getActivity(), "到达最大接单数，停止自动接单", Toast.LENGTH_SHORT).show();
+                                ToastManager.showToast(requireActivity(), "到达最大接单数，暂停自动接单", Toast.LENGTH_SHORT);
                             }
                         });
 
                         // 等待自动接单重新开始
-                        Values.isAutoAccept  = false;
-                        synchronized (Values.waitAutoAcceptReStartLock){
+                        Values.isAutoAccept = false;
+                        synchronized (Values.waitAutoAcceptReStartLock) {
                             while (!Values.isAutoAccept) {
                                 try {
                                     Values.waitAutoAcceptReStartLock.wait();
@@ -479,17 +592,33 @@ public class OrderFragment extends Fragment {
                         // 自动接单
 
                         List<Order> acceptedOrderList_sort = new ArrayList<>(unacceptedOrderList);
-                        acceptedOrderList_sort.sort(Comparator.comparingInt(Order::getAmount).reversed());
+
+                        switch (Values.autoAcceptPriority) {
+                            case 0:
+                                acceptedOrderList_sort.sort(Comparator.comparingInt(Order::getDistance));
+                                break;
+                            case 1:
+                                acceptedOrderList_sort.sort(Comparator.comparingInt(Order::getAmount).reversed());
+                                break;
+
+                        }
+
 
                         if (acceptedOrderList_sort.isEmpty()) {
                             Log.i(Values.TAG, "无可接取订单");
-                            return;
-                        } else { // 有可接取订单
-                            int position = orderListAdapter.getPositionByOderNo(acceptedOrderList_sort.get(0).getNo());
                             requireActivity().runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Log.i(Values.TAG, "自动接取订单："+acceptedOrderList_sort.get(0).getTitle());
+                                    ToastManager.showToast(requireActivity(), "无可接取订单", Toast.LENGTH_SHORT);
+                                }
+                            });
+                            return;
+                        } else { // 有可接取订单
+                            int position = getPositionByOderNo(unacceptedOrderList ,acceptedOrderList_sort.get(0).getNo());
+                            requireActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Log.i(Values.TAG, "自动接取订单：" + acceptedOrderList_sort.get(0).getTitle());
                                     acceptOrderByPosition(position);
                                 }
                             });
@@ -497,7 +626,7 @@ public class OrderFragment extends Fragment {
                     }
 
                     try {
-                        Thread.sleep(500);
+                        Thread.sleep(1000);
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
@@ -508,23 +637,39 @@ public class OrderFragment extends Fragment {
     }
 
     public void acceptOrderByPosition(int position) {
-        RecyclerView.ViewHolder rvViewHolder = viewHolder.rvOrderList.findViewHolderForAdapterPosition(position);
-
-
-        if (rvViewHolder == null) {
-            viewHolder.rvOrderList.post(() -> {
-                RecyclerView.ViewHolder rvViewHolder_retry = viewHolder.rvOrderList.findViewHolderForAdapterPosition(0);
-                if (rvViewHolder_retry != null) {
-                    rvViewHolder_retry.itemView.findViewById(R.id.btn_take_order).performClick();   // 点击接单按钮
-                }
-            });
-            return;
-        }
-
-        rvViewHolder.itemView.findViewById(R.id.btn_take_order).performClick(); // 点击接单按钮
+        Order order = unacceptedOrderList.get(position);
+        requestAcceptOrder(order.getNo());
     }
 
     private void stopAutoAcceptOrder() {
         Values.isAutoAccept = false;
+    }
+
+    private void restartAutoAcceptOrder() {
+        Values.isAutoAccept = true;
+        synchronized (Values.waitAutoAcceptReStartLock) {
+            Values.waitAutoAcceptReStartLock.notify();
+        }
+    }
+
+    public int getPositionByOderNo(List<Order> orderList,String orderNo) {
+        for (int i = 0; i < orderList.size(); i++) {
+            Order order = orderList.get(i);
+            if (order.getNo().equals(orderNo)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+    public Order getOrderByOderNo(List<Order> orderList,String orderNo){
+        for (Order order : orderList) {
+            if (order ==  null){
+                continue;
+            }
+            if (order.getNo().equals(orderNo)) {
+                return order;
+            }
+        }
+        return null;
     }
 }

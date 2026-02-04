@@ -1,7 +1,8 @@
 <resources>
     <string name="app_name">OnMyWay</string>
 
-    <string name="request_ip">8.138.253.20</string>
+    <string name="request_ip">192.168.1.6</string>
+    <string name="request_ip_copy">8.138.253.20</string>
     <string name="request_port">9090</string>
 
     <string name="shared_preferences_user_info_key">user_info</string>

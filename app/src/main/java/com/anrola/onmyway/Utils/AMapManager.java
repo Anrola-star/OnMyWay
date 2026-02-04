@@ -126,11 +126,11 @@ public class AMapManager {
             if (intent.resolveActivity(context.getPackageManager()) != null) {
                 context.startActivity(intent);
             } else {
-                Toast.makeText(context, "无法打开定位设置", Toast.LENGTH_SHORT).show();
+                ToastManager.showToast(context, "无法打开定位设置", Toast.LENGTH_SHORT);
             }
         } catch (Exception e) {
             Log.e(TAG, "openLocationSetting: " + e);
-            Toast.makeText(context, "打开定位设置失败", Toast.LENGTH_SHORT).show();
+            ToastManager.showToast(context, "打开定位设置失败", Toast.LENGTH_SHORT);
         }
     }
 

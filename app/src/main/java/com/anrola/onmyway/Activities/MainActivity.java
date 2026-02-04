@@ -61,13 +61,13 @@ public class MainActivity extends AppCompatActivity {
     // 初始化Fragment
     private void initFragments() {
         if (orderFragment == null) {
-            orderFragment = new OrderFragment(); // 接单Fragment
+            orderFragment = new OrderFragment(this); // 接单Fragment
         }
         if (mineFragment == null) {
-            mineFragment = new MineFragment();   // 我的Fragment
+            mineFragment = new MineFragment(this);   // 我的Fragment
         }
         if (navFragment == null) {
-            navFragment = new NavFragment();    // 导航Fragment
+            navFragment = new NavFragment(this);    // 导航Fragment
         }
     }
 

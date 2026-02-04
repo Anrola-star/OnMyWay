@@ -122,6 +122,9 @@ public class DeliveryRouteDynamic {
         Log.d(TAG, "开始配送点规划...");
         List<Order> remainingOrders = new ArrayList<>();
         for (Order order : orderList){
+            if (order == null){
+                continue;
+            }
             Order orderFake = new Order(order);
             remainingOrders.add(orderFake);
         }

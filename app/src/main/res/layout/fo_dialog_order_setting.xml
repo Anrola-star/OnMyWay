@@ -2,28 +2,28 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginHorizontal="24dp"
     android:background="#FFFFFF"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:layout_marginHorizontal="24dp">
+    android:padding="16dp">
 
     <!-- 弹窗标题 -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
         android:text="接单设置"
-        android:textSize="18sp"
-        android:textStyle="bold"
         android:textColor="#333333"
-        android:layout_marginBottom="16dp"/>
+        android:textSize="18sp"
+        android:textStyle="bold" />
 
     <!-- 接单距离限制 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
         android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:layout_marginBottom="12dp">
+        android:orientation="horizontal">
 
         <TextView
             android:layout_width="match_parent"
@@ -33,21 +33,31 @@
             android:textColor="#333333"
             android:textSize="14sp" />
 
-        <Spinner
-            android:id="@+id/fo_spinner_distance"
-            android:layout_width="120dp"
-            android:layout_height="32dp"
-            android:entries="@array/fo_order_distance"
-            android:background="@drawable/fo_selector_spinner_bg"/>
+        <EditText
+            android:id="@+id/fo_et_max_distance"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:ems="10"
+            android:inputType="number"
+            android:text="1" />
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:text="米以内" />
+
     </LinearLayout>
 
     <!-- 接单金额限制 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
         android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:layout_marginBottom="12dp">
+        android:orientation="horizontal">
 
         <TextView
             android:layout_width="match_parent"
@@ -57,20 +67,30 @@
             android:textColor="#333333"
             android:textSize="14sp" />
 
-        <Spinner
-            android:id="@+id/fo_spinner_amount"
-            android:layout_width="120dp"
-            android:layout_height="32dp"
-            android:entries="@array/fo_order_amount"
-            android:background="@drawable/fo_selector_spinner_bg"/>
+        <EditText
+            android:id="@+id/fo_et_min_amount"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:ems="10"
+            android:inputType="number"
+            android:text="1" />
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:text="元以上" />
+
     </LinearLayout>
 
     <!-- 接单类型选择 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginBottom="12dp">
+        android:layout_marginBottom="12dp"
+        android:orientation="vertical">
 
         <TextView
             android:layout_width="match_parent"
@@ -93,12 +113,21 @@
                 android:text="最大接单数"
                 android:textColor="#333333" />
 
-            <Spinner
-                android:id="@+id/fo_spinner_auto_accept_max"
-                android:layout_width="120dp"
-                android:layout_height="32dp"
-                android:background="@drawable/fo_selector_spinner_bg"
-                android:entries="@array/fo_auto_accept_max" />
+            <EditText
+                android:id="@+id/fo_et_auto_accept_max"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:ems="10"
+                android:inputType="number"
+                android:text="1" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:text="单        " />
+
         </LinearLayout>
 
         <LinearLayout
@@ -114,11 +143,12 @@
                 android:textColor="#333333" />
 
             <Spinner
-                android:id="@+id/fo_spinner_auto_accept_priority"
-                android:layout_width="120dp"
-                android:layout_height="32dp"
-                android:background="@drawable/fo_selector_spinner_bg"
+                android:id="@+id/fo_et_auto_accept_priority"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_weight="1"
                 android:entries="@array/fo_auto_accept_priority" />
+
         </LinearLayout>
 
     </LinearLayout>

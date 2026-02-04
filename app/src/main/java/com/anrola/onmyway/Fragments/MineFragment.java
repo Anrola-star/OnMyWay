@@ -32,6 +32,7 @@ import com.anrola.onmyway.R;
 import com.anrola.onmyway.Utils.AssetsAvatarManager;
 import com.anrola.onmyway.Utils.MyRequest;
 import com.anrola.onmyway.Utils.SharedPreferencesManager;
+import com.anrola.onmyway.Utils.ToastManager;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.components.XAxis;
@@ -104,7 +105,9 @@ public class MineFragment extends Fragment {
     private final MyRequest myRequest = new MyRequest();
 
 
-
+    public MineFragment(Context context) {
+        this.context = context;
+    }
 
 
 
@@ -158,7 +161,7 @@ public class MineFragment extends Fragment {
                 // 空数据处理
                 if (msg.obj == null) {
                     Log.e(Values.TAG, "JSON解析失败：响应字符串为空");
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                    AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
                     builder.setTitle("错误")
                             .setMessage("请求失败, 无响应")
                             .setPositiveButton("确定", null)
@@ -190,7 +193,7 @@ public class MineFragment extends Fragment {
                                 Log.d(Values.TAG, ChartData.entriesWeek.toString());
                                 viewHolder.tvTodayIncome.setText(String.format("¥%s", ChartData.weekTotalIncome));
                             } else if (response.getInt("code") == 500) {
-                                Toast.makeText(getActivity(), "收入获取错误", Toast.LENGTH_SHORT).show();
+                                ToastManager.showToast(requireActivity(), "收入获取错误", Toast.LENGTH_SHORT);
                             }
                         } catch (JSONException e) {
                             throw new RuntimeException(e);
@@ -218,7 +221,7 @@ public class MineFragment extends Fragment {
                                     Values.waitMonthDataLock.notify();
                                 }
                             } else if (response.getInt("code") == 500) {
-                                Toast.makeText(getActivity(), "收入获取错误", Toast.LENGTH_SHORT).show();
+                                ToastManager.showToast(requireActivity(), "收入获取错误", Toast.LENGTH_SHORT);
                             }
                         } catch (JSONException e) {
                             throw new RuntimeException(e);
@@ -232,7 +235,7 @@ public class MineFragment extends Fragment {
                                 ChartData.totalIncome = data.getInt("income");
                                 viewHolder.tvTotalIncome.setText(String.format("¥%s", ChartData.totalIncome));
                             } else if (response.getInt("code") == 500) {
-                                Toast.makeText(getActivity(), "收入获取错误", Toast.LENGTH_SHORT).show();
+                                ToastManager.showToast(requireActivity(), "收入获取错误", Toast.LENGTH_SHORT);
                             }
                         } catch (JSONException e) {
                             throw new RuntimeException(e);
@@ -254,7 +257,7 @@ public class MineFragment extends Fragment {
                                 List<Bitmap> avatars = avatarManager.getAllAvatars();
                                 viewHolder.ivAvatar.setImageBitmap(avatars.get(UserData.userAvatar));
                             } else if (response.getInt("code") == 500) {
-                                Toast.makeText(getActivity(), "用户信息获取错误", Toast.LENGTH_SHORT).show();
+                                ToastManager.showToast(requireActivity(), "用户信息获取错误", Toast.LENGTH_SHORT);
                             }
                         } catch (JSONException e) {
                             throw new RuntimeException(e);
@@ -274,7 +277,7 @@ public class MineFragment extends Fragment {
         });
         // 修改信息点击
         viewHolder.tvEditInfo.setOnClickListener(v->{
-            Intent intent = new Intent(getActivity(), UserInfoActivity.class);
+            Intent intent = new Intent(requireActivity(), UserInfoActivity.class);
             startActivity(intent);
         });
         // 登出点击
@@ -282,10 +285,10 @@ public class MineFragment extends Fragment {
         viewHolder.btnLogout.setOnClickListener(v -> showLogoutDialog());
         // 收益详情
         // TODO: 跳转到收益详情页面
-        viewHolder.tvMyIncomeDetail.setOnClickListener(v -> Toast.makeText(getActivity(), "查看我的收益详情", Toast.LENGTH_SHORT).show());
+        viewHolder.tvMyIncomeDetail.setOnClickListener(v -> Toast.makeText(requireActivity(), "查看我的收益详情", Toast.LENGTH_SHORT).show());
         // 设置点击
         // TODO: 跳转到系统设置页面
-        viewHolder.tvMySetting.setOnClickListener(v -> Toast.makeText(getActivity(), "进入系统设置", Toast.LENGTH_SHORT).show());
+        viewHolder.tvMySetting.setOnClickListener(v -> Toast.makeText(requireActivity(), "进入系统设置", Toast.LENGTH_SHORT).show());
 
         // 本周/本月切换
         viewHolder.tvWeek.setOnClickListener(v -> {
@@ -442,12 +445,12 @@ public class MineFragment extends Fragment {
 
     // 退出登录对话框
     private void showLogoutDialog() {
-        new AlertDialog.Builder(getActivity())
+        new AlertDialog.Builder(requireActivity())
                 .setTitle("退出登录")
                 .setMessage("确定要退出当前账号吗？")
                 .setPositiveButton("确定", (dialog, which) -> {
-                    Toast.makeText(getActivity(), "退出登录成功", Toast.LENGTH_SHORT).show();
-                    // 实际项目中添加退出登录逻辑
+                    ToastManager.showToast(context, "已退出登录", Toast.LENGTH_SHORT);
+                    //TODO 退出登录逻辑
                 })
                 .setNegativeButton("取消", null)
                 .show();
@@ -493,7 +496,7 @@ public class MineFragment extends Fragment {
             // 更新主界面头像
             viewHolder.ivAvatar.setImageBitmap(avatars.get(selectedPos));
             // 提示更换成功
-            Toast.makeText(context, "头像更换成功", Toast.LENGTH_SHORT).show();
+            ToastManager.showToast(context, "头像更换成功", Toast.LENGTH_SHORT);
             // 关闭弹窗
             dialog.dismiss();
         });

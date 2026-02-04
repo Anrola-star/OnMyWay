@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import com.anrola.onmyway.Interface.OnLoginFragmentSwitchListener;
 import com.anrola.onmyway.Utils.EditTextController;
 import com.anrola.onmyway.Utils.MyRequest;
+import com.anrola.onmyway.Utils.ToastManager;
 
 public class RegisterFragment extends Fragment {
 
@@ -101,25 +102,24 @@ public class RegisterFragment extends Fragment {
                 // 空数据处理
                 if (msg.obj == null) {
                     Log.e(TAG, "JSON解析失败：响应字符串为空");
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                    AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
                     builder.setTitle("错误")
                             .setMessage("请求失败, 无响应")
                             .setPositiveButton("确定", null)
                             .show();
-                    //Toast.makeText(getActivity(), "登录失败, 无响应", Toast.LENGTH_SHORT).show();
                     return; // 终止后续解析逻辑
                 }
 
                 if (msg.what == RegisterHandlerWhat) {
                     // 解析JSON
-                    JSONObject response = null;
+                    JSONObject response;
                     try {
                         response = new JSONObject((String) msg.obj);
                         if (response.getInt("code") == 200) {
-                            Toast.makeText(getActivity(), "注册成功，返回登录", Toast.LENGTH_SHORT).show();
+                            ToastManager.showToast(context, "注册成功，返回登录", Toast.LENGTH_SHORT);
                             switchListener.switchToLoginFragment();
                         } else if (response.getInt("code") == 400) {
-                            Toast.makeText(getActivity(), "注册失败", Toast.LENGTH_SHORT).show();
+                            ToastManager.showToast(context, "注册失败", Toast.LENGTH_SHORT);
                         }
                     } catch (JSONException e) {
                         throw new RuntimeException(e);

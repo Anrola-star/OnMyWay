@@ -26,6 +26,7 @@ import com.anrola.onmyway.R;
 import com.anrola.onmyway.Utils.EditTextController;
 import com.anrola.onmyway.Utils.MyRequest;
 import com.anrola.onmyway.Utils.SharedPreferencesManager;
+import com.anrola.onmyway.Utils.ToastManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -220,7 +221,7 @@ public class UserInfoActivity extends AppCompatActivity {
                                 byte[] captchaBase64Bytes = Base64.decode(captchaBase64, Base64.DEFAULT);
                                 ivCaptcha.setImageBitmap(BitmapFactory.decodeByteArray(captchaBase64Bytes, 0, captchaBase64Bytes.length));
                             } else if (response.getInt("code") == 500) {
-                                Toast.makeText(context, "验证码获取错误", Toast.LENGTH_SHORT).show();
+                                ToastManager.showToast(context, "验证码获取错误", Toast.LENGTH_SHORT);
                             }
                         } catch (JSONException e) {
                             throw new RuntimeException(e);
@@ -243,7 +244,7 @@ public class UserInfoActivity extends AppCompatActivity {
 
                                 setListeners(); // 设置输入框监听
                             }else if (response.getInt("code") == 500) {
-                                Toast.makeText(context, "用户信息获取错误", Toast.LENGTH_SHORT).show();
+                                ToastManager.showToast(context, "用户信息获取错误", Toast.LENGTH_SHORT);
                             }
                         } catch (JSONException e) {
                             throw new RuntimeException(e);
