@@ -1,5 +1,7 @@
 package com.anrola.onmyway.Fragments;
 
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.os.Bundle;
@@ -18,10 +20,13 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.RotateAnimation;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -59,7 +64,7 @@ public class OrderFragment extends Fragment {
         private TabLayout tabOrderType;
         private Spinner spinnerSort;
         private Button btnOrderSetting;
-        private Button btnOrderRefresh;
+        private ImageView ivRefresh;
         private SwitchCompat swAutoAccept;
     }
 
@@ -141,6 +146,17 @@ public class OrderFragment extends Fragment {
         viewHolder.spinnerSort = view.findViewById(R.id.of_spinner_sort);
         viewHolder.btnOrderSetting = view.findViewById(R.id.of_btn_order_setting);
         viewHolder.swAutoAccept = view.findViewById(R.id.of_switch_auto_accept);
+        viewHolder.ivRefresh = view.findViewById(R.id.of_iv_refresh);
+        RotateAnimation rotateAnimation = new RotateAnimation(
+                0, 360,
+                Animation.RELATIVE_TO_SELF, 0.5f,
+                Animation.RELATIVE_TO_SELF, 0.5f
+        );
+        rotateAnimation.setDuration(1000);
+        rotateAnimation.setRepeatCount(2);
+        rotateAnimation.setRepeatMode(Animation.RESTART);
+        rotateAnimation.setFillAfter(true);
+        viewHolder.ivRefresh.setAnimation(rotateAnimation);
     }
 
     private void initValues() {
@@ -169,7 +185,6 @@ public class OrderFragment extends Fragment {
         // 订单完成按钮点击事件
         orderListAdapter.setOnDoneOrderClickListener((position, order) -> {
             requestFinishOrder(order.getNo());
-
         });
     }
 
@@ -198,10 +213,12 @@ public class OrderFragment extends Fragment {
                             JSONArray jsonArray = new JSONArray(msg.obj.toString());
                             unacceptedOrderList = getOrderListByJSONArray(jsonArray, false);
                             orderListAdapter.updateData(unacceptedOrderList);
-
                         } catch (JSONException e) {
                             Log.e(Values.TAG, "JSON解析失败：" + e.getMessage());
                         }
+
+
+
                         break;
                     case HandlerWhats.getAndUpdateAcceptedOrderHandlerWhat: // 获取并更新已接单订单
                         try {
@@ -393,6 +410,13 @@ public class OrderFragment extends Fragment {
                 }
             }
         });
+        // 刷新
+        viewHolder.ivRefresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                requestAndUpdateOrder(Values.isUnreceivedOrderPage, Values.sortIndex);
+            }
+        });
     }
 
     private void showOrderSettingDialog() {
@@ -447,6 +471,7 @@ public class OrderFragment extends Fragment {
     }
 
     public void requestAndUpdateOrder(boolean isUnreceivedOrderPage, int orderBy) {
+        viewHolder.ivRefresh.startAnimation(viewHolder.ivRefresh.getAnimation());
         if (isUnreceivedOrderPage) {
             String attribute1 = "orderBy=" + orderBy;
             String attribute2 = "&minAmount=" + Values.orderMinAmount;

@@ -113,14 +113,16 @@
             android:layout_height="match_parent"
             android:layout_weight="1"/>
 
+        <ImageView
+            android:id="@+id/of_iv_refresh"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:backgroundTint="#575757"
+            android:backgroundTintMode="src_in"
+            android:padding="6dp"
+            android:src="@drawable/ic_refresh" />
+
         <!-- 更多筛选按钮 -->
-        <TextView
-            android:id="@+id/of_tv_more_filter"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="更多筛选 ▼"
-            android:textColor="#2196F3"
-            android:textSize="14sp"/>
     </LinearLayout>
 
     <!-- 此处是 RecyclerView，用于绑定 OrderListAdapter -->

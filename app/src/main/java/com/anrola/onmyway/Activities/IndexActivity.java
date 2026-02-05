@@ -6,7 +6,10 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
+import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -30,6 +33,7 @@ import com.anrola.onmyway.Utils.SharedPreferencesManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class IndexActivity extends AppCompatActivity {
 
@@ -65,56 +69,10 @@ public class IndexActivity extends AppCompatActivity {
         //测试入口
         //Intent MainIntent = new Intent(this, MainActivity.class);
         //startActivity(MainIntent);
-        //test();
+        //test(this);
     }
 
     // 测试函数
-    public void test(Context  context) {
-        List<Order> acceptedOrderList = new ArrayList<>();
-        // 获取用户信息
-        MyRequest myRequest = new MyRequest();
-        handler = new Handler(Looper.getMainLooper()) {
-            @Override
-            public void handleMessage(Message msg) {
-                super.handleMessage(msg);
-
-                if (msg.what == 0) {
-                    try {
-                        JSONArray jsonArray = new JSONArray(msg.obj.toString());
-                        for (int i = 0; i < jsonArray.length(); i++) {
-                            JSONObject jsonObject = jsonArray.getJSONObject(i);
-                            Order order = new Order(
-                                    jsonObject.getString("no"),
-                                    jsonObject.getString("title"),
-                                    jsonObject.getString("receiverName"),
-                                    jsonObject.getString("receiverMobile"),
-                                    jsonObject.getString("receiverProvince"),
-                                    jsonObject.getString("receiverCity"),
-                                    jsonObject.getString("receiverDistrict"),
-                                    jsonObject.getString("receiverAddress"),
-                                    jsonObject.getJSONObject("startLocation"),
-                                    jsonObject.getJSONObject("endLocation"),
-                                    jsonObject.getInt("amount"),
-                                    jsonObject.getString("startTime"),
-                                    jsonObject.getString("requireTime"),
-                                    jsonObject.getBoolean("isAccepted"),
-                                    jsonObject.getBoolean("isPickUp"),
-                                    jsonObject.getBoolean("isFinished")
-                            );
-                            acceptedOrderList.add(order);
-                        }
-                    } catch (JSONException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            }
-        }
-        ;
-        SharedPreferencesManager sharedPreferencesManager = SharedPreferencesManager.getInstance(context);
-        String baseURL = myRequest.getBaseURL(context);
-        String url = baseURL + "/order/all/accepted?" + "orderBy=" + 0;
-        String key = "token";
-        String token = sharedPreferencesManager.get(key);
-        myRequest.get(url, handler, 0, token);
+    public void test(Context context) {
     }
 }

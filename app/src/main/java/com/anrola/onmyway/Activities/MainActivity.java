@@ -3,6 +3,7 @@ package com.anrola.onmyway.Activities;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -49,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
 
         //String[] sList = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
         //ActivityCompat.requestPermissions(this, sList, 1001);
+
 
         bottomNav = findViewById(R.id.ma_bottom_nav);
 
