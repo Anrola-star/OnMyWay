@@ -23,7 +23,7 @@ import java.nio.charset.StandardCharsets;
 
 
 public class MyRequest {
-    private static final String TAG = "MYLOG_MyRequest";
+    private static final String TAG = "MyRequest";
     private Context context;
     private InputStream inputStream = null;
     private BufferedReader reader = null;
@@ -276,6 +276,7 @@ public class MyRequest {
     }
 
     public String getBaseURL(Context context) {
+        // 报错，检查build.gradle文件
         String ip = BuildConfig.SERVICE_IP;
         String port = BuildConfig.SERVICE_PORT;
         return String.format("http://%s:%s",ip, port);

@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mf_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#F5F5F5">
+    android:background="#F5F5F5"
+    android:orientation="vertical">
 
     <!-- 顶部用户信息栏（卡片式） -->
     <androidx.cardview.widget.CardView
@@ -17,18 +19,18 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="16dp"
-            android:gravity="center_vertical">
+            android:padding="16dp">
 
             <!-- 头像 -->
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/mf_iv_avatar"
                 android:layout_width="64dp"
                 android:layout_height="64dp"
-                android:src="@drawable/ic_default_avatar"
+                android:layout_marginRight="16dp"
                 android:scaleType="centerCrop"
-                android:layout_marginRight="16dp"/>
+                android:src="@drawable/ic_default_avatar" />
 
             <!-- 昵称+骑手ID -->
             <LinearLayout
@@ -61,11 +63,11 @@
                 android:id="@+id/mf_tv_edit_info"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="修改信息"
-                android:textSize="14sp"
-                android:textColor="#2196F3"
                 android:drawableRight="@drawable/ic_arrow_right"
-                android:drawablePadding="4dp"/>
+                android:drawablePadding="4dp"
+                android:text="修改信息"
+                android:textColor="#2196F3"
+                android:textSize="14sp" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
@@ -89,16 +91,15 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
                 android:text="骑手收益总结"
-                android:textSize="16sp"
                 android:textColor="#333333"
-                android:textStyle="bold"
-                android:layout_marginBottom="12dp"/>
+                android:textSize="16sp"
+                android:textStyle="bold" />
             <!-- 本周/本月切换按钮 -->
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="#F0F0F0"
                 android:orientation="horizontal"
                 android:padding="2dp"
                 android:radius="8dp"
@@ -106,60 +107,100 @@
 
                 <TextView
                     android:id="@+id/mf_tv_week"
-                    android:layout_width="60dp"
-                    android:layout_height="30dp"
-                    android:text="本周"
-                    android:textSize="14sp"
-                    android:textColor="#FFFFFF"
-                    android:gravity="center"
-                    android:background="#2196F3"
+                    android:layout_width="65dp"
+                    android:layout_height="35dp"
                     android:layout_margin="1dp"
-                    android:radius="6dp"/>
+                    android:layout_weight="0"
+                    android:background="#2196F3"
+                    android:gravity="center"
+                    android:radius="6dp"
+                    android:text="本周"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp" />
 
                 <TextView
                     android:id="@+id/mf_tv_month"
-                    android:layout_width="60dp"
-                    android:layout_height="30dp"
-                    android:text="本月"
-                    android:textSize="14sp"
-                    android:textColor="#333333"
-                    android:gravity="center"
-                    android:background="#F0F0F0"
+                    android:layout_width="65dp"
+                    android:layout_height="35dp"
                     android:layout_margin="1dp"
-                    android:radius="6dp"/>
+                    android:layout_weight="0"
+                    android:background="#F0F0F0"
+                    android:gravity="center"
+                    android:radius="6dp"
+                    android:text="本月"
+                    android:textColor="#333333"
+                    android:textSize="14sp" />
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1" />
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/mf_cl_refresh_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_weight="0"
+                    android:background="@drawable/bg_corner_radius_90">
+
+                    <ImageView
+                        android:id="@+id/mf_iv_refresh"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_gravity="center_vertical"
+                        android:layout_weight="1"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:srcCompat="@drawable/ic_refresh" />
+
+                    <TextView
+                        android:id="@+id/mf_tv_refresh_tips"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="正在获取收入情况"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toStartOf="@+id/mf_iv_refresh"
+                        app:layout_constraintTop_toTopOf="parent"
+                        tools:visibility="gone" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
             </LinearLayout>
 
             <!-- 收益统计（横向排列） -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center">
+                android:gravity="center"
+                android:orientation="horizontal">
 
                 <!-- 今日收益 -->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center">
+                    android:gravity="center"
+                    android:orientation="vertical">
 
                     <TextView
-                        android:id="@+id/mf_tv_today_income"
+                        android:id="@+id/mf_tv_week_income"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="¥89.50"
-                        android:textSize="20sp"
                         android:textColor="#FF5722"
-                        android:textStyle="bold"/>
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="今日收益"
-                        android:textSize="12sp"
+                        android:layout_marginTop="4dp"
+                        android:text="本周收益"
                         android:textColor="#999999"
-                        android:layout_marginTop="4dp"/>
+                        android:textSize="12sp" />
                 </LinearLayout>
 
                 <!-- 本月收益 -->
@@ -167,25 +208,25 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center">
+                    android:gravity="center"
+                    android:orientation="vertical">
 
                     <TextView
                         android:id="@+id/mf_tv_month_income"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="¥2568.80"
-                        android:textSize="20sp"
                         android:textColor="#FF5722"
-                        android:textStyle="bold"/>
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
                         android:text="本月收益"
-                        android:textSize="12sp"
                         android:textColor="#999999"
-                        android:layout_marginTop="4dp"/>
+                        android:textSize="12sp" />
                 </LinearLayout>
 
                 <!-- 总收益 -->
@@ -193,32 +234,32 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center">
+                    android:gravity="center"
+                    android:orientation="vertical">
 
                     <TextView
                         android:id="@+id/mf_tv_total_income"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="¥18956.30"
-                        android:textSize="20sp"
                         android:textColor="#FF5722"
-                        android:textStyle="bold"/>
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
                         android:text="累计收益"
-                        android:textSize="12sp"
                         android:textColor="#999999"
-                        android:layout_marginTop="4dp"/>
+                        android:textSize="12sp" />
                 </LinearLayout>
             </LinearLayout>
             <!-- 收益折线图 -->
             <com.github.mikephil.charting.charts.LineChart
                 android:id="@+id/mf_income_chart"
                 android:layout_width="match_parent"
-                android:layout_height="200dp"/>
+                android:layout_height="200dp" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
@@ -226,10 +267,9 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp">
-
+        android:layout_marginRight="16dp"
+        android:orientation="vertical">
 
 
         <TextView

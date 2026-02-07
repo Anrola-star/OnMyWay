@@ -27,6 +27,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.anrola.onmyway.Utils.AIApiClient;
 import com.anrola.onmyway.Utils.DeliveryRouteDynamic;
 import com.anrola.onmyway.Utils.MyRequest;
 import com.anrola.onmyway.Utils.SharedPreferencesManager;
@@ -62,7 +63,7 @@ public class IndexActivity extends AppCompatActivity {
         //测试入口
         //Intent MainIntent = new Intent(this, MainActivity.class);
         //startActivity(MainIntent);
-        //test(this);
+        test(this);
     }
 
     // 测试函数

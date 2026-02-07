@@ -209,7 +209,6 @@ public class LoginFragment extends Fragment {
         });
     }
 
-
     private void initData() {
         String nKey = getString(R.string.shared_preferences_user_name_key);
         String rKey = getString(R.string.shared_preferences_remember_pwd_key);

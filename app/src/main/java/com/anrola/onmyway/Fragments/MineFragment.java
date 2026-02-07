@@ -5,30 +5,39 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.DashPathEffect;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.RotateAnimation;
 import android.widget.Button;
 import android.widget.GridView;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+import com.anrola.onmyway.Activities.MainActivity;
 import com.anrola.onmyway.Activities.UserInfoActivity;
 import com.anrola.onmyway.Adapter.AvatarSelectAdapter;
 import com.anrola.onmyway.Entity.Avatar;
 import com.anrola.onmyway.R;
+import com.anrola.onmyway.Utils.AIApiClient;
 import com.anrola.onmyway.Utils.AssetsAvatarManager;
 import com.anrola.onmyway.Utils.MyRequest;
 import com.anrola.onmyway.Utils.SharedPreferencesManager;
@@ -46,6 +55,8 @@ import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -53,12 +64,13 @@ import java.util.Objects;
 public class MineFragment extends Fragment {
 
     private static class ViewHolder {
+        private LinearLayout root;
         // 控件
         private CircleImageView ivAvatar;
         private TextView tvNickname;
         private TextView tvRiderId;
         private TextView tvEditInfo;
-        private TextView tvTodayIncome;
+        private TextView tvWeekIncome;
         private TextView tvMonthIncome;
         private TextView tvTotalIncome;
         private Button btnLogout;
@@ -68,23 +80,34 @@ public class MineFragment extends Fragment {
         private LineChart incomeChart;
         private TextView tvWeek;
         private TextView tvMonth;
+        private ImageView ivRefresh;
+        private ConstraintLayout clRefreshLayout;
+        private TextView tvRefreshTips;
     }
+
     private final ViewHolder viewHolder = new ViewHolder();
+
     private static class ChartData {
         private static final List<Entry> entriesWeek = new ArrayList<>();
         private static final List<String> xWeekLabels = new ArrayList<>();
+        public static int weekSize;
         private static int weekTotalIncome = 0;
+
         private static final List<Entry> entriesMonth = new ArrayList<>();
         private static final List<String> xMonthLabels = new ArrayList<>();
+        public static int monthSize;
         private static int monthTotalIncome = 0;
         private static int totalIncome = 0;
+        private static final List<Entry> entriesWeekPredict = new ArrayList<>();
+        private static final List<Entry> entriesMonthPredict = new ArrayList<>();
     }
+
     private static class HandlerWhats {
-        private static final int getWeekIncomeHandlerWhat = 1;
-        private static final int getMonthIncomeHandlerWhat = 2;
-        private static final int getTotalIncomeHandlerWhat = 3;
         private static final int getUserInfoHandlerWhat = 4;
+        private static final int getIncomeOverallHandlerWhat = 5;
+
     }
+
     private static class UserData {
         private static Long userId;
         private static String userName;
@@ -92,11 +115,13 @@ public class MineFragment extends Fragment {
         private static String userPhone;
         private static int userAvatar;
     }
+
     private static class Values {
-        private static boolean isWeekData = true; // 当前显示本周/本月数据
-        private static boolean isMonthDataGot = false;
+        private static boolean isShowWeekData = true; // 当前显示本周/本月数据
+        private static boolean isIncomeDataGot = false;
+        private static boolean isAiPredictIncomeGot = false;
         private static final String TAG = "MineFragment";
-        private static final Object waitMonthDataLock = new Object();
+        private static final Object waitIncomeDataLock = new Object();
     }
 
     private Context context;
@@ -110,14 +135,10 @@ public class MineFragment extends Fragment {
     }
 
 
-
-
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_mine, container, false);
-
         // 初始化控件
         initView(view);
         // 初始化handler
@@ -127,7 +148,7 @@ public class MineFragment extends Fragment {
         // 初始化图表
         initChart();
         // 请求图表数据
-        requestChartData(true);
+        requestChartData();
         // 请求用户数据
         requestUserData();
         // 设置点击事件
@@ -140,16 +161,30 @@ public class MineFragment extends Fragment {
     private void initView(View view) {
         context = view.getContext();
         sharedPreferencesManager = SharedPreferencesManager.getInstance(context);
+        viewHolder.root = view.findViewById(R.id.mf_root);
         viewHolder.ivAvatar = view.findViewById(R.id.mf_iv_avatar);
         viewHolder.tvNickname = view.findViewById(R.id.mf_tv_nickname);
         viewHolder.tvRiderId = view.findViewById(R.id.mf_tv_rider_id);
         viewHolder.tvEditInfo = view.findViewById(R.id.mf_tv_edit_info);
-        viewHolder.tvTodayIncome = view.findViewById(R.id.mf_tv_today_income);
+        viewHolder.tvWeekIncome = view.findViewById(R.id.mf_tv_week_income);
         viewHolder.tvMonthIncome = view.findViewById(R.id.mf_tv_month_income);
         viewHolder.tvTotalIncome = view.findViewById(R.id.mf_tv_total_income);
         viewHolder.btnLogout = view.findViewById(R.id.mf_btn_logout);
         viewHolder.tvMyIncomeDetail = view.findViewById(R.id.mf_tv_my_income_detail);
         viewHolder.tvMySetting = view.findViewById(R.id.mf_tv_my_setting);
+        viewHolder.ivRefresh = view.findViewById(R.id.mf_iv_refresh);
+        RotateAnimation rotateAnimation = new RotateAnimation(
+                0, 360,
+                Animation.RELATIVE_TO_SELF, 0.5f,
+                Animation.RELATIVE_TO_SELF, 0.5f
+        );
+        rotateAnimation.setDuration(1000);
+        rotateAnimation.setRepeatCount(Animation.INFINITE);
+        rotateAnimation.setRepeatMode(Animation.RESTART);
+        rotateAnimation.setFillAfter(true);
+        viewHolder.ivRefresh.setAnimation(rotateAnimation);
+        viewHolder.clRefreshLayout = view.findViewById(R.id.mf_cl_refresh_layout);
+        viewHolder.tvRefreshTips = view.findViewById(R.id.mf_tv_refresh_tips);
     }
 
     private void initHandler() {
@@ -170,77 +205,9 @@ public class MineFragment extends Fragment {
                 }
 
 
-
-
-
                 // 响应数据处理
                 JSONObject response = null;
                 switch (msg.what) {
-                    case HandlerWhats.getWeekIncomeHandlerWhat:  // 获取本周收入
-                        try {
-                            response = new JSONObject((String) msg.obj);
-                            JSONObject data = response.getJSONObject("data");
-                            JSONObject weekDailyIncome = data.getJSONObject("income");
-                            ChartData.weekTotalIncome = data.getInt("total");
-                            if (response.getInt("code") == 200) {
-                                int length = weekDailyIncome.length();
-                                for (int i = 0; i < length; i++) {
-                                    int amount = weekDailyIncome.getInt(String.valueOf(i + 1));
-                                    ChartData.entriesWeek.add(new Entry(i, amount));
-                                    ChartData.xWeekLabels.add("周" + String.valueOf(i + 1));
-                                }
-                                loadChartData(Values.isWeekData, ChartData.entriesWeek, ChartData.xWeekLabels);
-                                Log.d(Values.TAG, ChartData.entriesWeek.toString());
-                                viewHolder.tvTodayIncome.setText(String.format("¥%s", ChartData.weekTotalIncome));
-                            } else if (response.getInt("code") == 500) {
-                                ToastManager.showToast(requireActivity(), "收入获取错误", Toast.LENGTH_SHORT);
-                            }
-                        } catch (JSONException e) {
-                            throw new RuntimeException(e);
-                        }
-                        break;
-                    case HandlerWhats.getMonthIncomeHandlerWhat:  // 获取本月收入
-                        try {
-                            response = new JSONObject((String) msg.obj);
-                            JSONObject data = response.getJSONObject("data");
-                            JSONObject monthDailyIncome = data.getJSONObject("income");
-                            ChartData.monthTotalIncome = data.getInt("total");
-                            if (response.getInt("code") == 200) {
-                                int length = monthDailyIncome.length();
-                                for (int i = 0; i < length; i++) {
-                                    int amount = monthDailyIncome.getInt(String.valueOf(i + 1));
-                                    ChartData.entriesMonth.add(new Entry(i, amount));
-                                    ChartData.xMonthLabels.add(String.valueOf(i + 1) + "日");
-                                }
-                                Log.d(Values.TAG, ChartData.entriesWeek.toString());
-                                viewHolder.tvMonthIncome.setText(String.format("¥%s", ChartData.monthTotalIncome));
-
-                                //  唤醒等待月数据的线程
-                                synchronized (Values.waitMonthDataLock){
-                                    Values.isMonthDataGot = true;
-                                    Values.waitMonthDataLock.notify();
-                                }
-                            } else if (response.getInt("code") == 500) {
-                                ToastManager.showToast(requireActivity(), "收入获取错误", Toast.LENGTH_SHORT);
-                            }
-                        } catch (JSONException e) {
-                            throw new RuntimeException(e);
-                        }
-                        break;
-                    case HandlerWhats.getTotalIncomeHandlerWhat: // 获取总收入
-                        try {
-                            response = new JSONObject((String) msg.obj);
-                            if (response.getInt("code") == 200) {
-                                JSONObject data = response.getJSONObject("data");
-                                ChartData.totalIncome = data.getInt("income");
-                                viewHolder.tvTotalIncome.setText(String.format("¥%s", ChartData.totalIncome));
-                            } else if (response.getInt("code") == 500) {
-                                ToastManager.showToast(requireActivity(), "收入获取错误", Toast.LENGTH_SHORT);
-                            }
-                        } catch (JSONException e) {
-                            throw new RuntimeException(e);
-                        }
-                        break;
                     case HandlerWhats.getUserInfoHandlerWhat:    // 获取用户信息
                         try {
                             response = new JSONObject((String) msg.obj);
@@ -263,6 +230,25 @@ public class MineFragment extends Fragment {
                             throw new RuntimeException(e);
                         }
                         break;
+                    case HandlerWhats.getIncomeOverallHandlerWhat:
+                        try {
+                            response = new JSONObject((String) msg.obj);
+
+                            if (response.getInt("code") != 200) {
+                                ToastManager.showToast(requireActivity(), "收入获取错误", Toast.LENGTH_SHORT);
+                            }
+
+                            JSONObject data = response.getJSONObject("data");
+                            processIncomeOverallData(data);
+
+                            if (!Values.isAiPredictIncomeGot) {
+                                requestAiIncomePredict(data);
+                            }
+
+                        } catch (JSONException e) {
+                            throw new RuntimeException(e);
+                        }
+                        break;
                 }
             }
         };
@@ -276,7 +262,7 @@ public class MineFragment extends Fragment {
             showAvatarSelectDialog();
         });
         // 修改信息点击
-        viewHolder.tvEditInfo.setOnClickListener(v->{
+        viewHolder.tvEditInfo.setOnClickListener(v -> {
             Intent intent = new Intent(requireActivity(), UserInfoActivity.class);
             startActivity(intent);
         });
@@ -292,25 +278,44 @@ public class MineFragment extends Fragment {
 
         // 本周/本月切换
         viewHolder.tvWeek.setOnClickListener(v -> {
-            if (!Values.isWeekData) {
-                Values.isWeekData = true;
+            if (!Values.isShowWeekData) {
+                if (!Values.isIncomeDataGot) {
+                    requestChartData();
+                    new Thread(() -> {
+                        // 等待数据获取
+                        Log.i(Values.TAG, "等待收入数据获取...");
+                        synchronized (Values.waitIncomeDataLock) {
+                            while (!Values.isIncomeDataGot) {
+                                try {
+                                    Values.waitIncomeDataLock.wait();// 进入等待状态
+                                } catch (InterruptedException e) {
+                                    Thread.currentThread().interrupt();
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                        }
+                        // 收入数据获取完成
+                        Log.i(Values.TAG, "——收入数据获取完成——");
+                    }).start();
+                }
+
+                Values.isShowWeekData = true;
                 updateTabStyle();
-                loadChartData(Values.isWeekData, ChartData.entriesWeek, ChartData.xWeekLabels);
+                loadChartData(ChartData.entriesWeek, ChartData.xWeekLabels);
+                loadChartPredictData(ChartData.entriesWeekPredict);
             }
         });
-
         viewHolder.tvMonth.setOnClickListener(v -> {
-            if (Values.isWeekData) {
-
-                if (!Values.isMonthDataGot){
-                    requestChartData(false);
+            if (Values.isShowWeekData) {
+                if (!Values.isIncomeDataGot) {
+                    requestChartData();
                     new Thread(() -> {
-                        // 等待月数据获取
-                        Log.i(Values.TAG, "等待月数据获取...");
-                        synchronized (Values.waitMonthDataLock){
-                            while (!Values.isMonthDataGot){
+                        // 等待数据获取
+                        Log.i(Values.TAG, "等待收入数据获取...");
+                        synchronized (Values.waitIncomeDataLock) {
+                            while (!Values.isIncomeDataGot) {
                                 try {
-                                    Values.waitMonthDataLock.wait();// 进入等待状态
+                                    Values.waitIncomeDataLock.wait();// 进入等待状态
                                 } catch (InterruptedException e) {
                                     Thread.currentThread().interrupt();
                                     throw new RuntimeException(e);
@@ -318,23 +323,30 @@ public class MineFragment extends Fragment {
                             }
                         }
                         // 月数据获取完成
-                        Log.i(Values.TAG, "——月数据获取完成——");
-                        Values.isWeekData = false;
-                        updateTabStyle();
-                        loadChartData(Values.isWeekData, ChartData.entriesMonth, ChartData.xMonthLabels);
+                        Log.i(Values.TAG, "——收入数据获取完成——");
                     }).start();
                 }
 
-                Values.isWeekData = false;
+                Values.isShowWeekData = false;
                 updateTabStyle();
-                loadChartData(Values.isWeekData, ChartData.entriesMonth, ChartData.xMonthLabels);
+                loadChartData(ChartData.entriesMonth, ChartData.xMonthLabels);
+                loadChartPredictData(ChartData.entriesMonthPredict);
+            }
+        });
+
+        viewHolder.clRefreshLayout.setOnClickListener(v -> {
+            //TODO
+            if (!Values.isIncomeDataGot){
+                showRefreshTips("请求图表数据中...");
+            }else if (!Values.isAiPredictIncomeGot){
+                showRefreshTips("AI正在预测收入...");
             }
         });
     }
 
     // 更新切换按钮样式（选中/未选中）
     private void updateTabStyle() {
-        if (Values.isWeekData) {
+        if (Values.isShowWeekData) {
             viewHolder.tvWeek.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_light, null));
             viewHolder.tvWeek.setTextColor(getResources().getColor(android.R.color.white, null));
             viewHolder.tvMonth.setBackgroundColor(getResources().getColor(android.R.color.white, null));
@@ -366,50 +378,49 @@ public class MineFragment extends Fragment {
 
         // 禁用触摸缩放
         viewHolder.incomeChart.setScaleEnabled(false);
+        viewHolder.incomeChart.setTouchEnabled(true); // 开启交互
+        viewHolder.incomeChart.setHighlightPerTapEnabled(true); // 点击触发高亮
+        viewHolder.incomeChart.setDragEnabled(true); // 开启拖拽
+        viewHolder.incomeChart.setScaleEnabled(false); // 关闭缩放
+        viewHolder.incomeChart.setScaleXEnabled(false);
+        viewHolder.incomeChart.setScaleYEnabled(false);
+        viewHolder.incomeChart.setPinchZoom(false); // 关闭双指缩放
+        viewHolder.incomeChart.setHorizontalScrollBarEnabled(true); // 显示横向滚动条
 
         // X轴配置
         XAxis xAxis = viewHolder.incomeChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setGranularity(1f);
+        xAxis.setLabelCount(7, false);
         xAxis.setDrawGridLines(false); // 隐藏X轴网格线
 
         // Y轴配置
         YAxis leftYAxis = viewHolder.incomeChart.getAxisLeft();
         leftYAxis.setDrawGridLines(true);
         leftYAxis.setGridColor(getResources().getColor(android.R.color.darker_gray, null));
-        viewHolder.incomeChart.getAxisRight().setEnabled(false); // 隐藏右侧Y轴
+        // 强制设置Y轴最小值为0（核心）
+        leftYAxis.setAxisMinimum(0f);
 
-        // 禁用图表点击
-        viewHolder.incomeChart.setClickable(false);
+        viewHolder.incomeChart.getAxisRight().setEnabled(false); // 隐藏右侧Y轴
     }
 
-    private void requestChartData(boolean isWeekData) {
+    private void requestChartData() {
+        showRefreshTips("请求图表数据中...");
+        viewHolder.ivRefresh.startAnimation(viewHolder.ivRefresh.getAnimation());
         // 获取本周/本月收益数据
         String key = getString(R.string.shared_preferences_token_key);
         String token = sharedPreferencesManager.get(key);
-        if (isWeekData){
-            String weekUrl = myRequest.getBaseURL(context) + "/income/getWeekDailyIncomeByUserId";
-            myRequest.get(weekUrl,
-                    handler,
-                    HandlerWhats.getWeekIncomeHandlerWhat,
-                    token);
-        }else {
-            String monthUrl = myRequest.getBaseURL(context) + "/income/getMonthDailyIncomeByUserId";
-            myRequest.get(monthUrl,
-                    handler,
-                    HandlerWhats.getMonthIncomeHandlerWhat,
-                    token);
-        }
+        String weekUrl = myRequest.getBaseURL(context) + "/income/getIncomeOverall";
+        myRequest.get(weekUrl,
+                handler,
+                HandlerWhats.getIncomeOverallHandlerWhat,
+                token);
     }
 
     private void requestUserData() {
         String key = getString(R.string.shared_preferences_token_key);
-        String totalIncomeUrl = myRequest.getBaseURL(context) + "/income/getTotalIncomeByUserId";
         String getUserInfoUrl = myRequest.getBaseURL(context) + "/user/id";
         String token = sharedPreferencesManager.get(key);
-        myRequest.get(totalIncomeUrl,
-                handler,
-                HandlerWhats.getTotalIncomeHandlerWhat,
-                token);
         myRequest.get(getUserInfoUrl,
                 handler,
                 HandlerWhats.getUserInfoHandlerWhat,
@@ -418,16 +429,18 @@ public class MineFragment extends Fragment {
 
 
     // 加载图表数据（本周/本月）
-    private void loadChartData(boolean isWeek, List<Entry> entries, List<String> xLabels) {
+    private void loadChartData(List<Entry> entries, List<String> xLabels) {
         // 构建数据集
         LineDataSet dataSet = new LineDataSet(entries, "收益");
         dataSet.setColor(getResources().getColor(android.R.color.holo_orange_dark, null)); // 折线颜色
         dataSet.setCircleColor(getResources().getColor(android.R.color.holo_orange_dark, null)); // 节点颜色
-        dataSet.setCircleRadius(4f); // 节点大小
+        dataSet.setCircleRadius(5f); // 节点大小
         dataSet.setDrawFilled(true); // 填充折线下方区域
         dataSet.setFillColor(getResources().getColor(android.R.color.holo_orange_light, null)); // 填充颜色
         dataSet.setFillAlpha(80); // 填充透明度
         dataSet.setLineWidth(2f); // 折线宽度
+        dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER); // 曲线模式
+        dataSet.setValueTextSize(10f);
 
         // 构建LineData
         List<ILineDataSet> dataSets = new ArrayList<>();
@@ -436,12 +449,178 @@ public class MineFragment extends Fragment {
 
         // 设置X轴标签
         viewHolder.incomeChart.getXAxis().setValueFormatter(new IndexAxisValueFormatter(xLabels));
-
         // 设置数据并刷新图表
         viewHolder.incomeChart.setData(lineData);
+
+        viewHolder.incomeChart.setVisibleXRangeMaximum(7f); // 屏幕最多显示7个点
+        viewHolder.incomeChart.setVisibleXRangeMinimum(5f); // 最少显示3个点，避免过度缩小
+
+        viewHolder.incomeChart.invalidate(); // 刷新
+
+    }
+
+    private void loadChartPredictData(List<Entry> entries) {
+        // 虚线
+        DashPathEffect dashPathEffect = new DashPathEffect(new float[]{10f, 5f}, 0f);
+        // 构建数据集
+        LineDataSet dataSet = new LineDataSet(entries, "预测收益");
+        dataSet.setColor(getResources().getColor(android.R.color.holo_blue_light, null)); // 折线颜色
+        dataSet.setCircleColor(getResources().getColor(android.R.color.holo_blue_light, null)); // 节点颜色
+        dataSet.setCircleRadius(5f); // 节点大小
+        dataSet.setLineWidth(2f); // 折线宽度
+        dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER); // 曲线模式
+        dataSet.setValueTextSize(10f);
+        dataSet.setFormLineDashEffect(dashPathEffect);
+
+        viewHolder.incomeChart.getLineData().addDataSet(dataSet);
+        // 设置数据并刷新图表
         viewHolder.incomeChart.invalidate(); // 刷新
     }
 
+    private void processIncomeOverallData(JSONObject data) {
+        dismissRefreshTips();
+        ChartData.entriesWeek.clear();
+        ChartData.xWeekLabels.clear();
+        ChartData.entriesMonth.clear();
+        ChartData.xMonthLabels.clear();
+
+        try {
+            JSONObject weekDailyIncome = data.getJSONObject("weekIncome");
+            JSONObject monthDailyIncome = data.getJSONObject("monthIncome");
+            int weekTotalIncome = data.getInt("weekTotal");
+            int monthTotalIncome = data.getInt("monthTotal");
+            int weekSize = data.getInt("weekSize");
+            int monthSize = data.getInt("monthSize");
+            int allTotal = data.getInt("allTotal");
+
+            // 保存数据
+            ChartData.weekTotalIncome = weekTotalIncome;
+            ChartData.monthTotalIncome = monthTotalIncome;
+            ChartData.weekSize = weekSize;
+            ChartData.monthSize = monthSize;
+            ChartData.totalIncome = allTotal;
+
+            // 载入周数据
+            int length = weekDailyIncome.length();
+            for (int i = 0; i < length; i++) {
+                int amount = weekDailyIncome.getInt(String.valueOf(i + 1));
+                ChartData.entriesWeek.add(new Entry(i, amount, amount));
+                ChartData.xWeekLabels.add("周" + String.valueOf(i + 1));
+            }
+            viewHolder.tvWeekIncome.setText(String.format("¥%s", ChartData.weekTotalIncome));
+
+            // 载入月数据
+            length = monthDailyIncome.length();
+            for (int i = 0; i < length; i++) {
+                int amount = monthDailyIncome.getInt(String.valueOf(i + 1));
+                ChartData.entriesMonth.add(new Entry(i, amount, amount));
+                ChartData.xMonthLabels.add(String.valueOf(i + 1) + "日");
+            }
+            viewHolder.tvMonthIncome.setText(String.format("¥%s", ChartData.monthTotalIncome));
+
+            // 载入总数据
+            viewHolder.tvTotalIncome.setText(String.format("¥%s", allTotal));
+
+            if (Values.isShowWeekData) {
+                loadChartData(ChartData.entriesWeek, ChartData.xWeekLabels);
+            } else {
+                loadChartData(ChartData.entriesMonth, ChartData.xMonthLabels);
+            }
+
+            //  唤醒等待收入数据的线程
+            synchronized (Values.waitIncomeDataLock) {
+                Values.isIncomeDataGot = true;
+                Values.waitIncomeDataLock.notify();
+            }
+
+            if (Values.isAiPredictIncomeGot && Values.isIncomeDataGot) {
+                viewHolder.ivRefresh.getAnimation().cancel();
+            }
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    private void processIncomeAiPredictData(JSONObject data) {
+        ChartData.entriesWeekPredict.clear();
+        ChartData.entriesMonthPredict.clear();
+        try {
+            JSONObject weekDailyIncome = data.getJSONObject("weekIncome");
+            JSONObject monthDailyIncome = data.getJSONObject("monthIncome");
+
+            // 载入周预测数据
+            int length = weekDailyIncome.length();
+            for (int i = ChartData.weekSize; i < length; i++) {   // 只保留预测数据
+                int amount = weekDailyIncome.getInt(String.valueOf(i + 1));
+                ChartData.entriesWeekPredict.add(new Entry(i, amount, amount));
+            }
+            // 载入月数据
+            length = monthDailyIncome.length();
+            for (int i = ChartData.monthSize; i < length; i++) {  // 只保留预测数据
+                int amount = monthDailyIncome.getInt(String.valueOf(i + 1));
+                ChartData.entriesMonthPredict.add(new Entry(i, amount, amount));
+            }
+
+            if (Values.isShowWeekData) {
+                loadChartPredictData(ChartData.entriesWeekPredict);
+            } else {
+                loadChartPredictData(ChartData.entriesMonthPredict);
+            }
+
+            if (Values.isAiPredictIncomeGot && Values.isIncomeDataGot) {
+                viewHolder.ivRefresh.getAnimation().cancel();
+                dismissRefreshTips();
+            }
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void requestAiIncomePredict(JSONObject dataOrigin) {
+        if (Values.isAiPredictIncomeGot) {
+            return;
+        }
+        showRefreshTips("AI正在预测收入...");
+        viewHolder.ivRefresh.startAnimation(viewHolder.ivRefresh.getAnimation());
+
+
+        // 获取当前时间
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String currentTime = now.format(formatter);
+
+        StringBuilder resultBuilder = new StringBuilder();
+        String userPrompt = dataOrigin.toString();
+        String systemPrompt = getString(R.string.AI_SYSTEM_PROMPT_INCOME_PREDICT)
+                + "[辅助数据]   当前时间：" + currentTime;
+        AIApiClient.getInstance().callAiApi(userPrompt, systemPrompt, new AIApiClient.AiCallback() {
+            @Override
+            public void onMessageReceived(String content) {
+                resultBuilder.append(content);
+                Log.d("AI_RESULT", "收到内容：" + content);
+            }
+
+            @Override
+            public void onComplete() {
+                // 请求完成，可做后续处理（如解析JSON）
+                Log.d("AI_RESULT", "请求完成，完整结果：" + resultBuilder.toString());
+                try {
+                    JSONObject result = new JSONObject(resultBuilder.toString());
+                    Values.isAiPredictIncomeGot = true;
+                    processIncomeAiPredictData(result);
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            @Override
+            public void onError(String errorMsg) {
+                // 处理错误
+                Log.e("AI_ERROR", errorMsg);
+            }
+        });
+    }
 
     // 退出登录对话框
     private void showLogoutDialog() {
@@ -504,6 +683,16 @@ public class MineFragment extends Fragment {
         // 显示弹窗
         dialog.show();
     }
+
+    private void showRefreshTips(String text) {
+        viewHolder.tvRefreshTips.setText(text);
+        viewHolder.tvRefreshTips.setVisibility(View.VISIBLE);
+    }
+
+    private void dismissRefreshTips() {
+        viewHolder.tvRefreshTips.setVisibility(View.GONE);
+    }
+
 
     @Override
     public void onDestroy() {

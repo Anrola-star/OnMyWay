@@ -117,8 +117,6 @@
             android:id="@+id/of_iv_refresh"
             android:layout_width="45dp"
             android:layout_height="45dp"
-            android:backgroundTint="#575757"
-            android:backgroundTintMode="src_in"
             android:padding="6dp"
             android:src="@drawable/ic_refresh" />
 
