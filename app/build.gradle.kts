@@ -29,6 +29,20 @@ android {
         versionCode = 1
         versionName = "1.0"
 
+        // Build Config
+        // IF ERROR，CHECK THE gradle.properties FILE，
+        // Need
+        // SERVICE_IP = xxx.xxx.xxx.xxx
+        // SERVICE_PORT = y
+        // AI_API_KEY = z
+        // AMAP_API_KEY = a
+        buildConfigField("String", "SERVICE_IP", "\"${project.properties["SERVICE_IP"] ?: ""}\"")
+        buildConfigField("String", "SERVICE_PORT", "\"${project.properties["SERVICE_PORT"] ?: ""}\"")
+        buildConfigField("String", "AI_API_KEY", "\"${project.properties["AI_API_KEY"] ?: ""}\"")
+        buildConfigField("String", "AMAP_API_KEY", "\"${project.properties["AMAP_API_KEY"] ?: ""}\"")
+
+
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("androiddebug")
     }
@@ -54,8 +68,9 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
-    
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"

@@ -40,14 +40,7 @@ public class IndexActivity extends AppCompatActivity {
     public static final String TAG = "MYLOG_IndexActivity";
     public Handler handler;
 
-    //证书指纹R:
-    //SHA1: 10:E7:96:B9:41:24:7D:BB:05:64:02:B0:7D:90:E1:BB:7D:2C:42:26
-    //SHA256: 10:17:06:65:BB:A3:0D:EF:C8:29:F2:48:B0:00:63:F3:0D:29:77:FE:E2:F5:2F:94:78:0A:8C:7F:DB:F7:7C:AD
 
-
-    //证书指纹D:
-    //SHA1: 61:F4:CB:01:03:CD:B1:1B:C5:A8:8D:2A:04:63:0C:10:1B:D4:E1:8F
-    //SHA256: 12:5C:3C:0F:1B:32:0A:EB:95:79:55:88:84:E0:25:A7:C4:25:D3:47:44:03:C9:74:F0:C9:FD:13:8B:8F:FF:27
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

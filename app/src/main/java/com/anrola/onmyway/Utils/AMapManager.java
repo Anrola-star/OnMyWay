@@ -51,6 +51,7 @@ import com.amap.api.services.route.RouteSearchV2;
 import com.amap.api.services.route.WalkPath;
 import com.amap.api.services.route.WalkRouteResult;
 import com.amap.api.services.route.WalkRouteResultV2;
+import com.anrola.onmyway.BuildConfig;
 import com.anrola.onmyway.R;
 
 import java.util.ArrayList;
@@ -92,10 +93,12 @@ public class AMapManager {
     }
 
     public void initMap(Context context) {
-        // 第一步：设置隐私政策是否弹窗告知用户
+        // 设置隐私政策是否弹窗告知用户
         MapsInitializer.updatePrivacyShow(context, true, true);
-        // 第二步：设置用户是否同意隐私政策
+        // 设置用户是否同意隐私政策
         MapsInitializer.updatePrivacyAgree(context, true);
+        // 设置API密钥
+        MapsInitializer.setApiKey(BuildConfig.AMAP_API_KEY);
     }
 
     public void requestMapPermissions(onLocationPermissionGrantedListener onLocationPermissionGrantedListener) {
