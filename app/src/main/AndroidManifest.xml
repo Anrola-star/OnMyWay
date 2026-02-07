@@ -38,10 +38,6 @@
         <activity
             android:name=".Activities.MainActivity"
             android:exported="false" />
-
-        <meta-data
-            android:name="com.amap.api.v2.apikey"
-            android:value="42414314cc6a061e0b0472146dcaca0e"/>
     </application>
 
 </manifest>

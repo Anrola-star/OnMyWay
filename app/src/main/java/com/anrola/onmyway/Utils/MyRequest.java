@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import com.anrola.onmyway.BuildConfig;
 import com.anrola.onmyway.R;
 
 import org.json.JSONObject;
@@ -19,6 +20,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+
 
 public class MyRequest {
     private static final String TAG = "MYLOG_MyRequest";
@@ -274,6 +276,8 @@ public class MyRequest {
     }
 
     public String getBaseURL(Context context) {
-        return String.format("http://%s:%s",context.getString(R.string.request_ip), context.getString(R.string.request_port));
+        String ip = BuildConfig.SERVICE_IP;
+        String port = BuildConfig.SERVICE_PORT;
+        return String.format("http://%s:%s",ip, port);
     }
 }
