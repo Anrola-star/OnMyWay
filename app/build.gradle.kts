@@ -40,7 +40,9 @@ android {
         buildConfigField("String", "SERVICE_IP", "\"${project.properties["SERVICE_IP"] ?: ""}\"")
         buildConfigField("String", "SERVICE_PORT", "\"${project.properties["SERVICE_PORT"] ?: ""}\"")
         buildConfigField("String", "AI_API_KEY", "\"${project.properties["AI_API_KEY"] ?: ""}\"")
+        buildConfigField("String", "DASHSCOPE_API_KEY", "\"${project.properties["DASHSCOPE_API_KEY"] ?: ""}\"")
         buildConfigField("String", "AMAP_API_KEY", "\"${project.properties["AMAP_API_KEY"] ?: ""}\"")
+
 
 
 
@@ -98,5 +100,6 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
     implementation (libs.amap3d)
     implementation (libs.okhttp3)
+    implementation (libs.openai)
 }
 

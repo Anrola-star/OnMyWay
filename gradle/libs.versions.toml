@@ -28,6 +28,7 @@ cardview = { group = "androidx.cardview", name = "cardview", version.ref = "card
 mpandroidChart = { group = "com.github.PhilJay", name = "mpandroidChart", version.ref = "mpandroidChart" }
 amap3d = {group = "com.amap.api", name = "3dmap-location-search", version = "latest.integration"}
 okhttp3 = { group = "com.squareup.okhttp3", name = "okhttp", version = "4.12.0" }
+openai = { group = "com.alibaba", name = "dashscope-sdk-java", version = "2.22.8"}
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -594,7 +594,7 @@ public class MineFragment extends Fragment {
         String userPrompt = dataOrigin.toString();
         String systemPrompt = getString(R.string.AI_SYSTEM_PROMPT_INCOME_PREDICT)
                 + "[辅助数据]   当前时间：" + currentTime;
-        AIApiClient.getInstance().callAiApi(userPrompt, systemPrompt, new AIApiClient.AiCallback() {
+        AIApiClient.getInstance().callChatApi(userPrompt, systemPrompt, new AIApiClient.AiChatCallback() {
             @Override
             public void onMessageReceived(String content) {
                 resultBuilder.append(content);
