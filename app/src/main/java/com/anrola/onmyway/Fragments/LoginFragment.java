@@ -145,7 +145,7 @@ public class LoginFragment extends Fragment {
                             ToastManager.showToast(context, "用户名或密码错误", Toast.LENGTH_SHORT);
                         }
                     } catch (JSONException e) {
-                        throw new RuntimeException(e);
+                        Log.e(TAG, "JSON解析失败：" + e.getMessage());
                     }
                 }
             }

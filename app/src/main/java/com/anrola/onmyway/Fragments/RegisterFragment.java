@@ -80,7 +80,7 @@ public class RegisterFragment extends Fragment {
         btnRegister = view.findViewById(R.id.rf_btn_register);
         etName = view.findViewById(R.id.rf_et_register_name);
         etNickName = view.findViewById(R.id.rf_et_register_nickname);
-        etEmail = view.findViewById(R.id.rf_et_register_email);
+        etEmail = view.findViewById(R.id.rf_et_register_phone);
         etPassword = view.findViewById(R.id.rf_et_register_pwd);
         etConfirmPassword = view.findViewById(R.id.rf_et_register_pwd_confirm);
 

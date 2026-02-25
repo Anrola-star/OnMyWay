@@ -32,6 +32,7 @@ import androidx.fragment.app.Fragment;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+import com.anrola.onmyway.Activities.LoginActivity;
 import com.anrola.onmyway.Activities.MainActivity;
 import com.anrola.onmyway.Activities.UserInfoActivity;
 import com.anrola.onmyway.Adapter.AvatarSelectAdapter;
@@ -114,6 +115,7 @@ public class MineFragment extends Fragment {
         private static String userNickName;
         private static String userPhone;
         private static int userAvatar;
+        private static JSONObject aiPredictIncome;
     }
 
     private static class Values {
@@ -141,7 +143,7 @@ public class MineFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_mine, container, false);
         // 初始化控件
         initView(view);
-        // 初始化handler
+        // 初始化 handler
         initHandler();
         // 初始化图表控件
         initChartView(view);
@@ -243,6 +245,8 @@ public class MineFragment extends Fragment {
 
                             if (!Values.isAiPredictIncomeGot) {
                                 requestAiIncomePredict(data);
+                            }else {
+                                processIncomeAiPredictData(UserData.aiPredictIncome);
                             }
 
                         } catch (JSONException e) {
@@ -340,6 +344,9 @@ public class MineFragment extends Fragment {
                 showRefreshTips("请求图表数据中...");
             }else if (!Values.isAiPredictIncomeGot){
                 showRefreshTips("AI正在预测收入...");
+            }else{
+                showRefreshTips("刷新图表数据");
+                requestChartData();
             }
         });
     }
@@ -608,6 +615,7 @@ public class MineFragment extends Fragment {
                 try {
                     JSONObject result = new JSONObject(resultBuilder.toString());
                     Values.isAiPredictIncomeGot = true;
+                    UserData.aiPredictIncome = result;
                     processIncomeAiPredictData(result);
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
@@ -628,11 +636,33 @@ public class MineFragment extends Fragment {
                 .setTitle("退出登录")
                 .setMessage("确定要退出当前账号吗？")
                 .setPositiveButton("确定", (dialog, which) -> {
+                    // 清除用户登录状态
+                    clearUserLoginState();
+                    
+                    // 跳转到登录页面并清除任务栈
+                    Intent intent = new Intent(context, LoginActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+
+                    requireActivity().finish();
+                    
                     ToastManager.showToast(context, "已退出登录", Toast.LENGTH_SHORT);
-                    //TODO 退出登录逻辑
                 })
                 .setNegativeButton("取消", null)
                 .show();
+    }
+    
+    /**
+     * 清除用户登录状态和相关数据
+     */
+    private void clearUserLoginState() {
+        // 清除自动登录状态
+        String autoLoginKey = getString(R.string.shared_preferences_auto_login_key);
+        sharedPreferencesManager.save(autoLoginKey, false);
+
+        //清除记住密码状态
+        String rememberPwdKey = getString(R.string.shared_preferences_remember_pwd_key);
+        sharedPreferencesManager.save(rememberPwdKey, false);
     }
 
     private void showAvatarSelectDialog() {

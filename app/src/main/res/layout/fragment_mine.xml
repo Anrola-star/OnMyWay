@@ -145,8 +145,8 @@
 
                     <ImageView
                         android:id="@+id/mf_iv_refresh"
-                        android:layout_width="30dp"
-                        android:layout_height="30dp"
+                        android:layout_width="29dp"
+                        android:layout_height="29dp"
                         android:layout_gravity="center_vertical"
                         android:layout_weight="1"
                         app:layout_constraintBottom_toBottomOf="parent"

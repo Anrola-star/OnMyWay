@@ -83,10 +83,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="邮箱">
+                android:hint="手机号">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/rf_et_register_email"
+                    android:id="@+id/rf_et_register_phone"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="text"

@@ -21,7 +21,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.anrola.onmyway.R;
 import com.anrola.onmyway.Utils.EditTextController;
@@ -43,7 +42,7 @@ public class UserInfoActivity extends AppCompatActivity {
     private Handler handler;
     private SharedPreferencesManager sharedPreferencesManager;
 
-    private class ViewHolder{
+    private class Views {
         private TextView tvUserId;
         private EditText etNickName;
         private EditText etName;
@@ -62,12 +61,13 @@ public class UserInfoActivity extends AppCompatActivity {
         private LinearLayout layoutConfirmNewPassword;
         private LinearLayout layoutCaptcha;
     }
-    private ViewHolder viewHolder;
+    private Views views = new Views();
 
 
     private EditTextController editTextController;
     private final int getCaptchaHandlerWhat = 1;
     private final int getUserInfoHandlerWhat = 2;
+    private final int updateUserInfoHandlerWhat = 3;
     private Map<String, String> sharedData = new HashMap<>();
     private final String sessionId_SharedDataKey = "sessionId";
     private final String id_SharedDataKey = "id";
@@ -94,57 +94,59 @@ public class UserInfoActivity extends AppCompatActivity {
         myRequest = new MyRequest();
         editTextController = new EditTextController();
         sharedPreferencesManager = SharedPreferencesManager.getInstance(context);
-        viewHolder.tvUserId = findViewById(R.id.uia_tv_user_id);
-        viewHolder.etNickName = findViewById(R.id.uia_et_nickname);
-        viewHolder.etName = findViewById(R.id.uia_et_user_name);
-        viewHolder.etPhone = findViewById(R.id.uia_et_phone);
-        viewHolder.tvPassword = findViewById(R.id.uia_tv_password);
-        viewHolder.etPassword = findViewById(R.id.uia_et_password);
-        viewHolder.etNewPassword = findViewById(R.id.uia_et_new_password);
-        viewHolder.etConfirmNewPassword = findViewById(R.id.uia_et_confirm_new_password);
-        viewHolder.etCaptcha = findViewById(R.id.uia_et_captcha);
-        viewHolder.ivCaptcha = findViewById(R.id.uia_iv_captcha);
-        viewHolder.btnChangePassword = findViewById(R.id.uia_btn_change_password);
-        viewHolder.btnEdit = findViewById(R.id.uia_btn_edit_info);
-        viewHolder.btnConfirm = findViewById(R.id.uia_btn_confirm_edit);
-        viewHolder.btnCancel = findViewById(R.id.uia_btn_cancel_edit);
-        viewHolder.layoutNewPassword = findViewById(R.id.uia_lo_new_password);
-        viewHolder.layoutConfirmNewPassword = findViewById(R.id.uia_lo_confirm_new_password);
-        viewHolder.layoutCaptcha = findViewById(R.id.uia_lo_captcha);
+        views.tvUserId = findViewById(R.id.uia_tv_user_id);
+        views.etNickName = findViewById(R.id.uia_et_nickname);
+        views.etName = findViewById(R.id.uia_et_user_name);
+        views.etPhone = findViewById(R.id.uia_et_phone);
+        views.tvPassword = findViewById(R.id.uia_tv_password);
+        views.etPassword = findViewById(R.id.uia_et_password);
+        views.etNewPassword = findViewById(R.id.uia_et_new_password);
+        views.etConfirmNewPassword = findViewById(R.id.uia_et_confirm_new_password);
+        views.etCaptcha = findViewById(R.id.uia_et_captcha);
+        views.ivCaptcha = findViewById(R.id.uia_iv_captcha);
+        views.btnChangePassword = findViewById(R.id.uia_btn_change_password);
+        views.btnEdit = findViewById(R.id.uia_btn_edit_info);
+        views.btnConfirm = findViewById(R.id.uia_btn_confirm_edit);
+        views.btnCancel = findViewById(R.id.uia_btn_cancel_edit);
+        views.layoutNewPassword = findViewById(R.id.uia_lo_new_password);
+        views.layoutConfirmNewPassword = findViewById(R.id.uia_lo_confirm_new_password);
+        views.layoutCaptcha = findViewById(R.id.uia_lo_captcha);
     }
 
     private void setClickEvents() {
-        viewHolder.btnChangePassword.setOnClickListener(v -> {
+        views.btnChangePassword.setOnClickListener(v -> {
             switchChangePasswordMode(true);
             switchEditMode(true);
         });
 
-        viewHolder.btnEdit.setOnClickListener(v -> {
+        views.btnEdit.setOnClickListener(v -> {
             switchEditMode(true);
         });
 
-        viewHolder.btnConfirm.setOnClickListener(v -> {
+        views.btnConfirm.setOnClickListener(v -> {
             switchEditMode(false);
         });
 
-        viewHolder.btnCancel.setOnClickListener(v -> {
-            switchChangePasswordMode(false);
+        views.btnCancel.setOnClickListener(v -> {
+
+
+            resetUserInfo();
             switchEditMode(false);
             switchCaptchaMode(false);
-            resetUserInfo();
+            switchChangePasswordMode(false);
         });
     }
 
     private void setListeners() {
-        viewHolder.etPassword.addTextChangedListener(new TextWatcher() {
+        views.etPassword.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                viewHolder.layoutConfirmNewPassword.setVisibility(View.VISIBLE);
-                viewHolder.layoutCaptcha.setVisibility(View.VISIBLE);
+                views.layoutConfirmNewPassword.setVisibility(View.VISIBLE);
+                views.layoutCaptcha.setVisibility(View.VISIBLE);
                 switchCaptchaMode(true);
             }
 
@@ -152,7 +154,7 @@ public class UserInfoActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
             }
         });
-        viewHolder.etConfirmNewPassword.addTextChangedListener(new TextWatcher() {
+        views.etConfirmNewPassword.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
@@ -163,20 +165,20 @@ public class UserInfoActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                String p1 = viewHolder.etNewPassword.getText().toString();
-                String p2 = viewHolder.etConfirmNewPassword.getText().toString();
+                String p1 = views.etNewPassword.getText().toString();
+                String p2 = views.etConfirmNewPassword.getText().toString();
                 if (!p1.equals(p2)) {
                     editTextController.startBorderWidthBlinkAnimation(
-                            UserInfoActivity.this, viewHolder.etConfirmNewPassword, getColor(R.color.red),
+                            UserInfoActivity.this, views.etConfirmNewPassword, getColor(R.color.red),
                             0, 3, 8, 600, 3);
                 } else {
                     editTextController.startBorderWidthBlinkAnimation(
-                            UserInfoActivity.this, viewHolder.etConfirmNewPassword, getColor(android.R.color.transparent),
+                            UserInfoActivity.this, views.etConfirmNewPassword, getColor(android.R.color.transparent),
                             0, 0, 8, 600, 0);
                 }
             }
         });
-        viewHolder.etPhone.addTextChangedListener(new TextWatcher() {
+        views.etPhone.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override
@@ -186,7 +188,7 @@ public class UserInfoActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {}
         });
-        viewHolder.etName.addTextChangedListener(new TextWatcher() {
+        views.etName.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override
@@ -226,7 +228,7 @@ public class UserInfoActivity extends AppCompatActivity {
                                 sharedData.put(sessionId_SharedDataKey, data.getString("sessionId"));
                                 String captchaBase64 = data.getString("imageBase64");
                                 byte[] captchaBase64Bytes = Base64.decode(captchaBase64, Base64.DEFAULT);
-                                viewHolder.ivCaptcha.setImageBitmap(BitmapFactory.decodeByteArray(captchaBase64Bytes, 0, captchaBase64Bytes.length));
+                                views.ivCaptcha.setImageBitmap(BitmapFactory.decodeByteArray(captchaBase64Bytes, 0, captchaBase64Bytes.length));
                             } else if (response.getInt("code") == 500) {
                                 ToastManager.showToast(context, "验证码获取错误", Toast.LENGTH_SHORT);
                             }
@@ -244,10 +246,10 @@ public class UserInfoActivity extends AppCompatActivity {
                                 sharedData.put(nickname_SharedDataKey, data.getString("nickname"));
                                 sharedData.put(phone_SharedDataKey, data.getString("phone"));
 
-                                viewHolder.tvUserId.setText(sharedData.get("id"));
-                                viewHolder.etName.setText(sharedData.get("name"));
-                                viewHolder.etNickName.setText(sharedData.get("nickname"));
-                                viewHolder.etPhone.setText(sharedData.get("phone"));
+                                views.tvUserId.setText(sharedData.get("id"));
+                                views.etName.setText(sharedData.get("name"));
+                                views.etNickName.setText(sharedData.get("nickname"));
+                                views.etPhone.setText(sharedData.get("phone"));
 
                                 setListeners(); // 设置输入框监听
                             }else if (response.getInt("code") == 500) {
@@ -256,6 +258,26 @@ public class UserInfoActivity extends AppCompatActivity {
                         } catch (JSONException e) {
                             throw new RuntimeException(e);
                         }
+                        break;
+                        case updateUserInfoHandlerWhat:
+                            try {
+                                response = new JSONObject((String) msg.obj);
+                                if (response.getInt("code") == 200) {
+                                    ToastManager.showToast(context, "用户信息更新成功", Toast.LENGTH_SHORT);
+                                    switchEditMode(false);
+                                    JSONObject data = response.getJSONObject("data");
+                                    sharedData.put(id_SharedDataKey, data.getString("id"));
+                                    sharedData.put(name_SharedDataKey, data.getString("name"));
+                                    sharedData.put(nickname_SharedDataKey, data.getString("nickname"));
+                                    sharedData.put(phone_SharedDataKey, data.getString("phone"));
+                                    views.tvUserId.setText(sharedData.get("id"));
+                                    views.etName.setText(sharedData.get("name"));
+                                    views.etNickName.setText(sharedData.get("nickname"));
+                                    views.etPhone.setText(sharedData.get("phone"));
+                                }
+                            } catch (JSONException e) {
+                                throw new RuntimeException(e);
+                            }
                 }
             }
         };
@@ -263,21 +285,21 @@ public class UserInfoActivity extends AppCompatActivity {
 
     private void switchEditMode(Boolean isEdit) {
         if (isEdit) {
-            setEditTextEnabled(viewHolder.etNickName, true);
-            setEditTextEnabled(viewHolder.etName, true);
-            setEditTextEnabled(viewHolder.etPhone, true);
+            setEditTextEnabled(views.etNickName, true);
+            setEditTextEnabled(views.etName, true);
+            setEditTextEnabled(views.etPhone, true);
 
-            viewHolder.btnEdit.setVisibility(View.GONE);
-            viewHolder.btnConfirm.setVisibility(View.VISIBLE);
-            viewHolder.btnCancel.setVisibility(View.VISIBLE);
+            views.btnEdit.setVisibility(View.GONE);
+            views.btnConfirm.setVisibility(View.VISIBLE);
+            views.btnCancel.setVisibility(View.VISIBLE);
         } else {
-            setEditTextEnabled(viewHolder.etNickName, false);
-            setEditTextEnabled(viewHolder.etName, false);
-            setEditTextEnabled(viewHolder.etPhone, false);
+            setEditTextEnabled(views.etNickName, false);
+            setEditTextEnabled(views.etName, false);
+            setEditTextEnabled(views.etPhone, false);
 
-            viewHolder.btnEdit.setVisibility(View.VISIBLE);
-            viewHolder.btnConfirm.setVisibility(View.GONE);
-            viewHolder.btnCancel.setVisibility(View.GONE);
+            views.btnEdit.setVisibility(View.VISIBLE);
+            views.btnConfirm.setVisibility(View.GONE);
+            views.btnCancel.setVisibility(View.GONE);
         }
     }
 
@@ -289,39 +311,39 @@ public class UserInfoActivity extends AppCompatActivity {
 
     private void switchCaptchaMode(Boolean isShowCaptcha) {
         if (isShowCaptcha) {
-            viewHolder.etCaptcha.setBackgroundResource(R.drawable.edit_text_bg);
-            viewHolder.etCaptcha.setEnabled(true);
-            viewHolder.layoutCaptcha.setVisibility(View.VISIBLE);
+            views.etCaptcha.setBackgroundResource(R.drawable.edit_text_bg);
+            views.etCaptcha.setEnabled(true);
+            views.layoutCaptcha.setVisibility(View.VISIBLE);
             if (!sharedData.containsKey(sessionId_SharedDataKey)) {
                 requestCaptcha();
             }
         } else {
-            viewHolder.layoutCaptcha.setVisibility(View.GONE);
-            viewHolder.etCaptcha.setText("");
-            viewHolder.etCaptcha.setEnabled(true);
-            viewHolder.etCaptcha.setBackgroundResource(android.R.color.transparent);
+            views.layoutCaptcha.setVisibility(View.GONE);
+            views.etCaptcha.setText("");
+            views.etCaptcha.setEnabled(true);
+            views.etCaptcha.setBackgroundResource(android.R.color.transparent);
         }
     }
 
     private void switchChangePasswordMode(Boolean isChangePassword) {
         if (isChangePassword) {
-            viewHolder.tvPassword.setText("旧密码：");
-            viewHolder.etPassword.setText("");
+            views.tvPassword.setText("旧密码：");
+            views.etPassword.setText("");
 
-            setEditTextEnabled(viewHolder.etPassword, true);
-            setEditTextEnabled(viewHolder.etNewPassword, true);
-            setEditTextEnabled(viewHolder.etConfirmNewPassword, true);
+            setEditTextEnabled(views.etPassword, true);
+            setEditTextEnabled(views.etNewPassword, true);
+            setEditTextEnabled(views.etConfirmNewPassword, true);
 
-            viewHolder.layoutNewPassword.setVisibility(View.VISIBLE);
-            viewHolder.layoutConfirmNewPassword.setVisibility(View.VISIBLE);
+            views.layoutNewPassword.setVisibility(View.VISIBLE);
+            views.layoutConfirmNewPassword.setVisibility(View.VISIBLE);
         } else {
 
-            setEditTextEnabled(viewHolder.etPassword, false);
-            setEditTextEnabled(viewHolder.etNewPassword, false);
-            setEditTextEnabled(viewHolder.etConfirmNewPassword, false);
+            setEditTextEnabled(views.etPassword, false);
+            setEditTextEnabled(views.etNewPassword, false);
+            setEditTextEnabled(views.etConfirmNewPassword, false);
 
-            viewHolder.layoutNewPassword.setVisibility(View.GONE);
-            viewHolder.layoutConfirmNewPassword.setVisibility(View.GONE);
+            views.layoutNewPassword.setVisibility(View.GONE);
+            views.layoutConfirmNewPassword.setVisibility(View.GONE);
         }
     }
 
@@ -347,17 +369,33 @@ public class UserInfoActivity extends AppCompatActivity {
     }
 
     private void resetUserInfo() {
-        viewHolder.tvUserId.setText(sharedData.get("id"));
-        viewHolder.etName.setText(sharedData.get("name"));
-        viewHolder.etNickName.setText(sharedData.get("nickname"));
-        viewHolder.etPhone.setText(sharedData.get("phone"));
-        viewHolder.tvPassword.setText("密码：");
-        viewHolder.etPassword.setText("********");
-        viewHolder.etNewPassword.setText("");
-        viewHolder.etConfirmNewPassword.setText("");
+        views.tvUserId.setText(sharedData.get("id"));
+        views.etName.setText(sharedData.get("name"));
+        views.etNickName.setText(sharedData.get("nickname"));
+        views.etPhone.setText(sharedData.get("phone"));
+        views.tvPassword.setText("密码：");
+        views.etPassword.setText("********");
+        views.etNewPassword.setText("");
+        views.etConfirmNewPassword.setText("");
+
     }
-    private void updateUserInfo() {
+    private void updateUserInfo(String nickname, String phone, String password) {
         // TODO: 更新用户信息
+        String urlString = myRequest.getBaseURL(this) + "/user/update";
+        JSONObject json = new JSONObject();
+        try {
+            json.put("nickname", nickname);
+            json.put("phone", phone);
+            json.put("password", password);
+        }catch (JSONException e){
+            throw new RuntimeException(e);
+        }
+        myRequest.post(
+                urlString,
+                json,
+                handler,
+                updateUserInfoHandlerWhat
+        );
     }
 
 }

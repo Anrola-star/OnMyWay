@@ -9,13 +9,13 @@ android {
 
     signingConfigs {
         create("androiddebug") {
-            storeFile = file("D:\\IDE\\AndroidStudio\\KeyStore\\myKeyStore.jks")
+            storeFile = file("D:\\local_lib\\KeyStore\\myKeyStore.jks")
             storePassword = "197319731973"
             keyAlias = "androiddebug"
             keyPassword = "197319731973"
         }
         create("androidrelease") {
-            storeFile = file("D:\\IDE\\AndroidStudio\\KeyStore\\myKeyStore.jks")
+            storeFile = file("D:\\local_lib\\KeyStore\\myKeyStore.jks")
             storePassword = "197319731973"
             keyPassword = "197319731973"
             keyAlias = "androidrelease"
@@ -25,7 +25,7 @@ android {
 
     defaultConfig {
         applicationId = "com.anrola.onmyway"
-        minSdk = 34
+        minSdk = 31
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
