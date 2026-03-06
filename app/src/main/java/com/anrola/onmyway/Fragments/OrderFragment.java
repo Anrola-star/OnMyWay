@@ -248,15 +248,17 @@ public class OrderFragment extends Fragment {
 
                             if (Values.isUnreceivedOrderPage){
                                 acceptedOrderList.add(getOrderByOderNo(unacceptedOrderList, orderNo));
-                                unacceptedOrderList.remove(getOrderByOderNo(unacceptedOrderList, orderNo));
+
                                 orderListAdapter.setOrderList(unacceptedOrderList);
                                 orderListAdapter.notifyItemRemoved(orderListAdapter.getPositionByOderNo(orderNo));
+                                unacceptedOrderList.remove(getOrderByOderNo(unacceptedOrderList, orderNo));
                             }else {
                                 acceptedOrderList.add(getOrderByOderNo(unacceptedOrderList, orderNo));
-                                unacceptedOrderList.remove(getOrderByOderNo(unacceptedOrderList, orderNo));
+
                                 orderListAdapter.setOrderList(acceptedOrderList);
                                 orderListAdapter.updateOrderToAccepted(orderNo, true);
                                 orderListAdapter.notifyItemInserted(orderListAdapter.getPositionByOderNo(orderNo));
+                                unacceptedOrderList.remove(getOrderByOderNo(unacceptedOrderList, orderNo));
                             }
 
                             MainActivity mainActivity = (MainActivity) context;

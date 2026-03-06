@@ -304,7 +304,7 @@ public class UserInfoActivity extends AppCompatActivity {
     }
 
     private void requestCaptcha() {
-        // TODO: 获取验证码
+        // 获取验证码
         String urlString = myRequest.getBaseURL(this) + "/captcha/get";
         myRequest.get(urlString, handler, getCaptchaHandlerWhat);
     }
@@ -380,7 +380,7 @@ public class UserInfoActivity extends AppCompatActivity {
 
     }
     private void updateUserInfo(String nickname, String phone, String password) {
-        // TODO: 更新用户信息
+        // 更新用户信息
         String urlString = myRequest.getBaseURL(this) + "/user/update";
         JSONObject json = new JSONObject();
         try {

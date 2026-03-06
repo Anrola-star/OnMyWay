@@ -287,15 +287,33 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
         return onDoneOrderClickListener;
     }
     public int getPositionByOderNo(String orderNo) {
+        if (orderNo == null || orderNo.trim().isEmpty()) {
+            Log.w(TAG, "getPositionByOderNo: 订单号为空");
+            return -1;
+        }
+        if (orderList == null || orderList.isEmpty()) {
+            Log.w(TAG, "getPositionByOderNo: 订单列表为空");
+            return -1;
+        }
+
+
         for (int i = 0; i < orderList.size(); i++) {
             Order order = orderList.get(i);
-            if(order ==  null){
+            // 跳过null订单
+            if (order == null) {
                 continue;
             }
-            if (order.getNo().equals(orderNo)) {
+            // 订单号非空且精准匹配（避免trim导致的空格问题，根据业务可选）
+            String currentOrderNo = order.getNo();
+            //Log.d(TAG, "getPositionByOderNo: 订单编号：" + currentOrderNo);
+            if (currentOrderNo != null && orderNo.equals(currentOrderNo)) {
+                //Log.d(TAG, "getPositionByOderNo: 找到订单" + orderNo + "，位置：" + i);
                 return i;
             }
         }
+
+        // 未找到
+        Log.w(TAG, "getPositionByOderNo: 未找到订单号为" + orderNo + "的订单");
         return -1;
     }
     public Order getOrderByOderNo(String orderNo) {

@@ -339,7 +339,6 @@ public class MineFragment extends Fragment {
         });
 
         viewHolder.clRefreshLayout.setOnClickListener(v -> {
-            //TODO
             if (!Values.isIncomeDataGot){
                 showRefreshTips("请求图表数据中...");
             }else if (!Values.isAiPredictIncomeGot){
